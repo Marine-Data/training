@@ -1,10 +1,16 @@
-Freestyle Tricks
+# Freestyle Tricks
+
 Planning des activités sportives du groupe WhatsApp Freestyle Tricks : chacun propose une activité, s'inscrit, vote pour des dates, et retrouve des séances types.
+
 Site statique (HTML, CSS, JavaScript) publié avec GitHub Pages. Les données (activités, inscriptions, votes) sont dans une base Supabase.
-Organisation des fichiers
+
+## Organisation des fichiers
+
 ```
 index.html              Structure de la page (onglets, formulaires)
-css/style.css           Mise en forme
+css/charte.css          Charte graphique : couleurs (jour et nuit), polices, formes
+css/style.css           Mise en forme du planning (utilise charte.css)
+css/seances.css         Applique la charte aux pages de séances
 js/config.js            Adresse de la base Supabase et clés publiques
 js/utils.js             Outils partagés (dates, échappement HTML, messages)
 js/api.js               Requêtes vers la base
@@ -18,11 +24,30 @@ sw.js                   Service worker (notifications)
 manifest.webmanifest    Fiche de l'appli installable
 icon-*.png              Icônes de l'appli
 ```
+
 Les scripts sont chargés dans cet ordre à la fin de `index.html`. Ils partagent les mêmes variables : `config.js` et `utils.js` doivent rester en premier.
-Mettre en ligne
-Dépose tous les fichiers à la racine du dépôt `freestyle-tricks`, en gardant les dossiers `css`, `js` et `seances`.
-Dans le dépôt : Settings, puis Pages, Branch `main`, dossier `/ (root)`, Save.
-Le site est en ligne à `https://marine-data.github.io/freestyle-tricks/` après une ou deux minutes.
-Ajouter une séance type
-Ajoute la page dans `seances/`.
-Dans `index.html`, copie un bloc `<a class="disc" …>` de l'onglet Séances et change le lien, l'emoji, le titre et la description.
+
+## Mettre en ligne
+
+1. Dépose tous les fichiers à la racine du dépôt `freestyle-tricks`, en gardant les dossiers `css`, `js` et `seances`.
+2. Dans le dépôt : Settings, puis Pages, Branch `main`, dossier `/ (root)`, Save.
+3. Le site est en ligne à `https://marine-data.github.io/freestyle-tricks/` après une ou deux minutes.
+
+## Ajouter une séance type
+
+1. Ajoute la page dans `seances/`.
+2. Dans `index.html`, copie un bloc `<a class="disc" …>` de l'onglet Séances et change le lien, l'emoji, le titre et la description.
+
+## Charte graphique
+
+Inspirée de l'esthétique manga : papier, encre, trame de points, et trois accents.
+
+- Forêt : actions (s'inscrire, publier, valider).
+- Électrique : ce qui te concerne (ton inscription, tes votes, les exercices validés).
+- Écarlate : suppression et erreurs.
+
+Toutes les couleurs sont des variables définies dans `css/charte.css`. N'écris jamais une couleur en dur dans un autre fichier : utilise la variable. Le mode nuit suit le réglage du téléphone et ne demande rien de plus.
+
+Polices : Dela Gothic One pour les titres, M PLUS Rounded 1c pour le texte (Google Fonts).
+
+Pour une nouvelle page de séance, ajoute dans le `<head>` le lien des polices et `../css/charte.css`, puis `../css/seances.css` après ton propre `<style>`.
