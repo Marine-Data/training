@@ -65,3 +65,7 @@ Un lien de la forme `…/training/#seance-<id>` ouvre directement une séance. C
 ## Lexique des exercices
 
 `js/lexique.js` associe chaque exercice technique (L-sit, scapula pull-ups, rondade…) à une explication en français et à une recherche YouTube. Elles s'affichent sous l'exercice dans la fiche de séance et dans l'éditeur. Un exercice dont le nom commence par un mot du lexique est reconnu (« Tractions à la barre fixe » utilise « tractions »).
+
+## Après une modification
+
+Les navigateurs gardent en mémoire les fichiers CSS et JS. Après chaque changement, mets à jour le numéro `?v=…` des liens dans `index.html` (même numéro partout) pour que tout le monde reçoive la nouvelle version.

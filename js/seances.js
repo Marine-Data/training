@@ -81,7 +81,7 @@ function renderSeances() {
   const sports = ['Tous', ...Object.keys(SPORTS).filter(k => counts[k])];
   if (!sports.includes(seFilter)) seFilter = 'Tous';
   // Filtre 1 : le sport
-  let html = sports.length > 2 ? `<div class="frow" aria-label="Sport">${sports.map(k =>
+  let html = sports.length > 1 ? `<div class="frow" aria-label="Sport">${sports.map(k =>
     `<button type="button" class="fchip" data-sport="${esc(k)}" aria-pressed="${k === seFilter}">${k === 'Tous' ? 'Tous' : sportOf(k).emo + ' ' + esc(k)} <span>${k === 'Tous' ? seances.length : counts[k]}</span></button>`).join('')}</div>` : '';
   // Un seul sport présent : on passe directement à ses étiquettes.
   const eff = sports.length === 2 ? sports[1] : seFilter;
