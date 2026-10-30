@@ -86,6 +86,13 @@ const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[
 const doseTxt = it => (it.series > 1 ? it.series + ' × ' : '') + it.reps;
 const complet = it => it.sets.length >= it.series;
 const traite = it => complet(it) || it.passe;
+// Récup choisie pour chaque exercice : gardée sur ce téléphone pour les prochaines fois.
+const RECUPS_KEY = 'ft_recups';
+function lireRecups() { try { return JSON.parse(localStorage.getItem(RECUPS_KEY) || '{}'); } catch (e) { return {}; } }
+function garderRecup(it) {
+  const r = lireRecups(); r[cleEx(it.x.nom)] = it.recup;
+  try { localStorage.setItem(RECUPS_KEY, JSON.stringify(r)); } catch (e) {}
+}
 const RESSENTIS = [['facile', 'Facile'], ['ok', 'OK'], ['dur', 'Dur'], ['douleur', 'Douleur']];
 
 /* ---------- Historique des charges : sur ce téléphone et dans la base (avec la séance faite) ---------- */
@@ -97,7 +104,7 @@ function histoEx(nom) {
   const ajoute = e => { const id = e.d + JSON.stringify(e.s); if (!vus.has(id)) { vus.add(id); out.push(e); } };
   (lireHistoLocal()[k] || []).forEach(ajoute);
   (typeof realisations !== 'undefined' ? realisations : []).forEach(r => ((r.details && r.details.exos) || [])
-    .filter(x => cleEx(x.nom) === k).forEach(x => ajoute({d: r.fait_le, s: x.s || [], r: x.r || ''})));
+    .filter(x => cleEx(x.nom) === k).forEach(x => ajoute({d: r.fait_le, s: x.s || [], r: x.r || '', rc: x.rc})));
   return out.sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
 }
 const kgMax = e => Math.max(-Infinity, ...e.s.map(([, kg]) => nombre(kg)).filter(n => n !== null));
@@ -130,7 +137,7 @@ function derniereFoisHtml(it) {
   else if (isFinite(km) && cible !== null && !estTemps(it.reps) && e.s.length >= it.series && e.r !== 'dur'
     && e.s.every(([r]) => (nombre(r) ?? 0) >= cible)) {
     const nv = fmtKg(km + (km < 10 ? 1 : 2.5));
-    if (nombre(it.kg) === null || nombre(it.kg) <= km) conseil = `<button type="button" class="lien" data-run="prendre" data-kg="${nv}">Tout réussi la dernière fois : essayer ${nv} kg ?</button>`;
+    if (nombre(it.kg) === null || nombre(it.kg) <= km) conseil = `<button type="button" class="lien" data-run="prendre" data-kg="${nv}">Tout réussi : essayer ${nv} kg ?</button>`;
   }
   return `<div class="dfois"><span>Dernière fois (${ilYa(e.d)}) : <b>${esc(resumeSets(e.s))}</b>${e.r ? ' · ' + esc((RESSENTIS.find(r => r[0] === e.r) || [, ''])[1]) : ''}</span>${courbe(h)}${conseil}</div>`;
 }
@@ -140,7 +147,7 @@ const RUN_KEY = 'ft_seance_en_cours2';
 function sauverRun() {
   if (!run) return;
   try { localStorage.setItem(RUN_KEY, JSON.stringify({id: run.s.id, t: Date.now(), cur: run.cur,
-    items: run.items.map(i => ({p: i.passe, n: i.series, r: i.reps, k: i.kg, s: i.sets, f: i.ressenti}))})); } catch (e) {}
+    items: run.items.map(i => ({p: i.passe, n: i.series, r: i.reps, k: i.kg, s: i.sets, f: i.ressenti, rc: i.recup}))})); } catch (e) {}
 }
 function oublierRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
 function lireRun(s, L) {
@@ -154,13 +161,15 @@ function lireRun(s, L) {
 /* ---------- Écran de séance ---------- */
 // Toute la séance reste visible ; l'exercice en cours est mis en avant. On valide série par série.
 function demarrerSeance(s) {
+  const recups = lireRecups();
   run = {s, cur: 0, recap: false, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => {
     const d = lireDose(x.dose), h = histoEx(x.nom), km = h.length ? kgMax(h[0]) : -Infinity;
-    return {bloc: b.titre, x, passe: false, series: d.series, reps: d.reps, kg: isFinite(km) ? fmtKg(km) : '', sets: [], ressenti: ''};
+    const rc = recups[cleEx(x.nom)] ?? (h.find(e => e.rc != null) || {}).rc ?? recupDe(x) ?? 0;
+    return {bloc: b.titre, x, passe: false, series: d.series, reps: d.reps, kg: isFinite(km) ? fmtKg(km) : '', sets: [], ressenti: '', recup: rc};
   }))};
   const prec = lireRun(s, run.items.length);
   if (prec && prec.items.some(i => i.p || (i.s || []).length)) {
-    prec.items.forEach((i, k) => Object.assign(run.items[k], {passe: !!i.p, series: i.n || 1, reps: i.r ?? '', kg: i.k ?? '', sets: i.s || [], ressenti: i.f || ''}));
+    prec.items.forEach((i, k) => Object.assign(run.items[k], {passe: !!i.p, series: i.n || 1, reps: i.r ?? '', kg: i.k ?? '', sets: i.s || [], ressenti: i.f || '', ...(i.rc != null ? {recup: i.rc} : {})}));
     run.cur = Math.min(prec.cur || 0, run.items.length - 1);
     run.repris = true;
   } else oublierRun();
@@ -179,11 +188,11 @@ function suivant(depuis) {
 function stepper(f, label, val, extra) {
   return `<div class="stp"><span class="stl">${label}</span><div class="stc">
     <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="-1" aria-label="${label} moins">−</button>
-    ${f === 'series' ? `<b class="stv">${esc(val)}</b>` : `<input type="text" ${f === 'kg' ? 'inputmode="decimal" placeholder="–"' : ''} data-f="${f}" value="${esc(val)}" aria-label="${label}" autocomplete="off">`}
+    ${f === 'series' || f === 'recup' ? `<b class="stv">${esc(val)}</b>` : `<input type="text" ${f === 'kg' ? 'inputmode="decimal" placeholder="–"' : ''} data-f="${f}" value="${esc(val)}" aria-label="${label}" autocomplete="off">`}
     <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="1" aria-label="${label} plus">+</button>${extra || ''}</div></div>`;
 }
 function carteActive(it) {
-  const tps = estTemps(it.reps), d = dureeEx({dose: it.reps}), r = recupDe(it.x);
+  const tps = estTemps(it.reps), d = dureeEx({dose: it.reps}), r = it.recup;
   const k = Math.min(it.sets.length + 1, it.series), fini = complet(it);
   const dots = Array.from({length: it.series}, (_, i) => `<i class="${i < it.sets.length ? 'ok' : i === it.sets.length ? 'now' : ''}"></i>`).join('');
   const journal = it.sets.length ? `<small class="journal">${it.sets.map(([rp, kg], i) => `S${i + 1} : ${esc(rp)}${kg ? ' × ' + esc(kg) + ' kg' : ''}`).join(' · ')}</small>` : '';
@@ -194,6 +203,7 @@ function carteActive(it) {
       ${stepper('reps', tps ? 'Durée' : 'Reps', it.reps)}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
       ${stepper('series', 'Séries', it.series)}
+      ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : 'Aucune')}
     </div>
     ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
     ${derniereFoisHtml(it)}
@@ -264,7 +274,7 @@ function recapHtml() {
   </section>`;
 }
 function detailsSeance() {
-  return {exos: run.items.filter(i => i.sets.length).map(i => ({nom: i.x.nom.slice(0, 80), s: i.sets.slice(0, 20), r: i.ressenti, c: doseTxt(i).slice(0, 30)}))};
+  return {exos: run.items.filter(i => i.sets.length).map(i => ({nom: i.x.nom.slice(0, 80), s: i.sets.slice(0, 20), r: i.ressenti, c: doseTxt(i).slice(0, 30), rc: i.recup}))};
 }
 function garderHistoLocal() {
   const h = lireHistoLocal(), d = todayStr();
@@ -300,6 +310,7 @@ $('runList').addEventListener('input', e => {
 });
 $('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
 function pas(it, f, d) {
+  if (f === 'recup') { it.recup = Math.max(0, Math.min(600, (it.recup || 0) + d * 15)); return; }
   if (f === 'series') it.series = Math.max(Math.max(1, it.sets.length), Math.min(20, it.series + d));
   else if (f === 'kg') {
     const n = nombre(it.kg);
@@ -314,7 +325,7 @@ function pas(it, f, d) {
   }
 }
 function action(a, b) {
-  const it = run.items[run.cur], r = recupDe(it.x);
+  const it = run.items[run.cur], r = it.recup;
   if (a === 'serie') {
     it.sets.push([String(it.reps).trim(), estTemps(it.reps) ? '' : it.kg]); it.passe = false;
     if (r) lancerChrono('down', r, complet(it) ? 'Récup' : 'Récup · série ' + (it.sets.length + 1));
@@ -325,7 +336,7 @@ function action(a, b) {
   else if (a === 'suivant') avancer();
   else if (a === 'passer') { it.passe = true; avancer(); }
   else if (a === 'annuler') { it.sets = []; it.passe = false; it.ressenti = ''; renderRun(); }
-  else if (a === 'pas') { pas(it, b.dataset.f, +b.dataset.d); renderRun(); }
+  else if (a === 'pas') { pas(it, b.dataset.f, +b.dataset.d); if (b.dataset.f === 'recup') { garderRecup(it); if (chrono && chrono.mode === 'down' && /^Récup/.test(chrono.label)) { chrono.fin += +b.dataset.d * 15000; majChrono(); } } renderRun(); }
   else if (a === 'prendre') { it.kg = b.dataset.kg; renderRun(); }
   else if (a === 'prevu') { const d = lireDose(it.x.dose); it.series = Math.max(d.series, it.sets.length); it.reps = d.reps; renderRun(); }
 }
