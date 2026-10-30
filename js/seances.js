@@ -15,7 +15,7 @@ const SPORTS = {
     'Échauffement':    {dose: '200 m', sugg: ['Crawl souple', 'Dos', 'Brasse', 'Éducatifs']},
     'Corps de séance': {dose: '4 × 100 m', sugg: ['Crawl', 'Jambes avec planche', 'Pull-buoy', 'Sprints 25 m', 'Pyramide', 'Brasse']},
     'Retour au calme': {dose: '100 m', sugg: ['Nage libre souple', 'Dos souple']}}},
-  'Running': {emo: '🏃', tags: ['VMA', 'Fractionné moyen', 'Fractionné long', 'Pyramide', 'Mixte', 'Fartlek', 'Test', 'En équipe', 'Endurance', 'Reprise', 'Avant course', 'Allure 10 km', 'Chaleur'], blocs: {
+  'Running': {emo: '🏃', tags: ['Fractionné court', 'Fractionné moyen', 'Fractionné long', 'Pyramide', 'Mixte', 'Fartlek', 'Test', 'En équipe', 'Endurance', 'Reprise', 'Avant course', 'Allure 10 km', 'Chaleur'], blocs: {
     'Échauffement':    {dose: '10 min', sugg: ['Footing lent', 'Gammes', 'Accélérations progressives']},
     'Corps de séance': {dose: '6 × 400 m', sugg: ['Fractionné 400 m', '30/30', 'Côtes', 'Allure tempo', 'Sortie longue']},
     'Retour au calme': {dose: '5 min', sugg: ['Footing lent', 'Marche', 'Étirements mollets']}}},

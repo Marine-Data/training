@@ -80,6 +80,7 @@ const LEXIQUE = {
   'jambes avec planche': ['Planche tenue devant toi : tu avances seulement avec les jambes.', 'battements jambes planche natation'],
   'sprints 25 m': ['Une longueur à fond, puis récupération.', 'sprint natation 25m'],
   // Running
+  'fractionne': ['Alternance de portions rapides et de récupérations. Choisis une allure que tu peux tenir sur toutes les répétitions.', 'fractionné course à pied débutant'],
   'allure vma': ['Ta vitesse maximale, tenable environ 6 minutes. Très essoufflé, impossible de parler.', 'VMA explication course à pied'],
   'allure 10 km': ['La vitesse que tu tiendrais sur une course de 10 km : soutenue, quelques mots possibles.', 'allure 10 km entraînement'],
   'allure 5 km': ['Un peu plus vite que l’allure 10 km : dur, mais tenable sur 5 km.', 'allure 5 km fractionné'],
