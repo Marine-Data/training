@@ -141,3 +141,49 @@ textarea{resize:vertical;min-height:70px}
 
 :focus-visible{outline:3px solid var(--electrique-txt);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Séances du groupe */
+dialog{max-height:calc(100dvh - 24px);overflow-y:auto}
+.filters{display:flex;gap:8px;overflow-x:auto;padding:4px 2px 8px;margin-top:6px;scrollbar-width:none}
+.filters:empty{display:none}
+.fchip{font:inherit;font-size:.85rem;font-weight:800;white-space:nowrap;border:var(--trait-fin) solid var(--encre);background:var(--case);color:var(--encre);border-radius:0;padding:5px 10px;cursor:pointer;min-height:36px}
+.fchip span{font-family:var(--f-titre);font-weight:400;margin-left:4px}
+.fchip[aria-pressed="true"]{background:var(--encre);color:var(--papier)}
+button.disc{font:inherit;width:100%;text-align:left;cursor:pointer}
+button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre)}
+#seView{display:flex;flex-direction:column;gap:6px}
+#seView h2{font-size:1.5rem;margin:4px 0 0;line-height:1.15}
+#seView .badge{align-self:flex-start}
+#seView a{color:var(--electrique-txt);font-weight:700}
+.sebloc{margin-top:12px}
+.sebloc h3{font-size:1.05rem;margin-bottom:6px}
+.sebloc ol{list-style:none;margin:0;padding:0;background:var(--case);border:var(--trait) solid var(--encre)}
+.sebloc li{display:flex;gap:12px;align-items:baseline;padding:9px 12px;border-top:1px solid var(--encre)}
+.sebloc li:first-child{border-top:0}
+.sebloc li b{font-family:var(--f-titre);font-weight:400;min-width:4.6em;text-align:right;font-variant-numeric:tabular-nums}
+.sebloc li span{flex:1;min-width:0}
+.sebloc li small{display:block;color:var(--encre-douce);font-size:.85rem}
+.seactions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.seactions .full{grid-column:1/-1}
+.sports{border:0;padding:0;margin:8px 0 0}
+.sports legend{font-weight:700;font-size:.88rem;margin-bottom:6px;padding:0}
+#seSports{display:flex;flex-wrap:wrap;gap:6px}
+.sport{display:inline-flex;margin:0;font-weight:700;font-size:.88rem;cursor:pointer}
+.sport input{position:absolute;opacity:0;width:1px;height:1px}
+.sport span{border:var(--trait-fin) solid var(--encre);background:var(--case);padding:5px 10px}
+.sport input:checked+span{background:var(--encre);color:var(--papier)}
+.sport input:focus-visible+span{outline:3px solid var(--electrique-txt);outline-offset:2px}
+.blocs-t{font-size:1.15rem;margin-top:18px}
+.blocedit{border:var(--trait) solid var(--encre);background:var(--case);padding:10px;margin:12px 0;display:flex;flex-direction:column;gap:8px;min-width:0}
+.bhead{display:flex;gap:8px;align-items:center}
+.bhead .bt{font-family:var(--f-titre);font-size:1rem}
+.bdel{font:inherit;font-size:.82rem;font-weight:700;color:var(--ecarlate-txt);background:none;border:0;text-decoration:underline;cursor:pointer;padding:6px 2px;flex:none}
+.exs{display:flex;flex-direction:column;gap:10px}
+.exrow{display:grid;grid-template-columns:6.8em 1fr 36px;gap:6px;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--trame)}
+.exrow:last-child{border-bottom:0;padding-bottom:0}
+.exrow .xo{grid-column:1/-1;font-size:14px;padding:8px 10px}
+.exrow input{padding:9px 10px}
+.xdel{font:inherit;background:none;border:0;color:var(--encre-douce);font-size:1.1rem;cursor:pointer;min-height:40px}
+.blocedit .sugg{margin-top:0}
+.blocedit .sugg button{font-size:.78rem;padding:3px 8px}
+.blocedit .addex{align-self:flex-start}

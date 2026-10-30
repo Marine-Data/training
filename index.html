@@ -42,14 +42,19 @@
   </div>
 
   <div id="viewSeances" role="tabpanel" aria-labelledby="tabSeances" hidden>
-    <h2 class="vh">Séances types</h2>
-    <p class="meta">Des exemples de séances pour s’entraîner ensemble ou chacun de son côté.</p>
+    <h2 class="vh">Séances du groupe</h2>
+    <p class="meta">Crée une séance pour ton sport, partage-la ou propose-la au planning. Tout le monde peut la reprendre et l’améliorer.</p>
+    <button class="btn primary big" id="seNew" type="button">+ Créer une séance</button>
+    <div class="filters" id="seFilters"></div>
+    <div id="seList" aria-live="polite"><div class="empty">Chargement des séances…</div></div>
+
+    <h2 class="vh" style="margin-top:30px">Séances illustrées</h2>
+    <p class="meta">Avec fiches dessinées et tutos.</p>
     <a class="disc" href="seances/tricking.html">
       <span class="emo" aria-hidden="true">🤸</span>
       <span class="dtxt"><b>Tricking</b><small>2 séances de 1h15 (flips, rotations), avec fiches illustrées et tutos</small></span>
       <span class="go" aria-hidden="true">→</span>
     </a>
-    <div class="disc soon"><span class="emo" aria-hidden="true">🏃</span><span class="dtxt"><b>Running</b><small>Bientôt</small></span></div>
     <a class="disc" href="seances/natation.html">
       <span class="emo" aria-hidden="true">🏊</span>
       <span class="dtxt"><b>Natation</b><small>3 séances de 1 500 m : celle d'Adrien, sa V2 avec planche, et une avec sprints</small></span>
@@ -60,8 +65,6 @@
       <span class="dtxt"><b>Renfo en salle</b><small>1 h à Neoness, pour les objectifs du tricking : poirier, flips, rotations, écarts</small></span>
       <span class="go" aria-hidden="true">→</span>
     </a>
-    <div class="disc soon"><span class="emo" aria-hidden="true">🧘</span><span class="dtxt"><b>Gym suédoise</b><small>Bientôt</small></span></div>
-    <div class="disc soon"><span class="emo" aria-hidden="true">🏋️</span><span class="dtxt"><b>Street workout</b><small>Bientôt</small></span></div>
   </div>
 </main>
 
@@ -136,6 +139,43 @@
   <div class="actions"><button class="btn primary" type="button" id="androidClose">Compris</button></div>
 </dialog>
 
+<!-- Voir une séance -->
+<dialog id="seViewDlg">
+  <div id="seView"></div>
+  <div class="seactions" id="seActions">
+    <button class="btn primary full" type="button" data-se="plan">📅 Proposer au planning</button>
+    <button class="btn small" type="button" data-se="share">💬 Partager</button>
+    <button class="btn small" type="button" data-se="edit">✎ Modifier</button>
+    <button class="btn small" type="button" data-se="copy">⧉ Dupliquer</button>
+    <button class="btn small danger" type="button" data-se="del">🗑 Supprimer</button>
+  </div>
+  <p style="text-align:center;margin-top:12px"><button class="btn small" type="button" id="seClose">Fermer</button></p>
+</dialog>
+
+<!-- Créer ou modifier une séance -->
+<dialog id="seEditDlg">
+  <form id="seForm" novalidate>
+    <h2 id="seEditTitle">Créer une séance</h2>
+    <fieldset class="sports"><legend>Sport</legend><div id="seSports"></div></fieldset>
+    <label for="seTitre">Nom de la séance</label>
+    <input id="seTitre" maxlength="120" placeholder="Ex : Flips du samedi, 1 500 m technique…">
+    <div class="two">
+      <div><label for="seDuree">Durée (min)</label><input id="seDuree" type="number" inputmode="numeric" min="1" max="600" placeholder="60"></div>
+    </div>
+    <label for="seDesc">Objectif ou matériel (optionnel)</label>
+    <textarea id="seDesc" maxlength="1000" placeholder="Niveau, matériel, objectif…"></textarea>
+    <h3 class="blocs-t">Déroulé</h3>
+    <p class="hint">Un exercice par ligne : la quantité à gauche, le nom à droite. Les suggestions ajoutent l’exercice d’un geste.</p>
+    <div id="seBlocs"></div>
+    <button class="btn small" type="button" id="seAddBloc">+ Ajouter un bloc</button>
+    <p class="err" id="seErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="seCancel">Annuler</button>
+      <button class="btn primary" type="submit" id="seSave">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Compléter une activité -->
 <dialog id="editDlg">
   <form id="editForm">
@@ -175,6 +215,7 @@
 <script src="js/partage.js"></script>
 <script src="js/formulaires.js"></script>
 <script src="js/notifications.js"></script>
+<script src="js/seances.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

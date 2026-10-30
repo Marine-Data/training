@@ -17,6 +17,7 @@ js/api.js               Requêtes vers la base
 js/planning.js          Affichage du planning, inscriptions, votes, suppression
 js/partage.js           Refaire une activité, partage WhatsApp, ajout à l'agenda
 js/formulaires.js       Proposer et modifier une activité
+js/seances.js           Séances du groupe : créer, modifier, dupliquer, partager, supprimer, proposer au planning
 js/notifications.js     Installation de l'appli et notifications push
 js/main.js              Démarrage et rafraîchissement automatique
 seances/                Séances types (tricking, natation, renfo)
@@ -51,3 +52,11 @@ Toutes les couleurs sont des variables définies dans `css/charte.css`. N'écris
 Polices : Dela Gothic One pour les titres, M PLUS Rounded 1c pour le texte (Google Fonts).
 
 Pour une nouvelle page de séance, ajoute dans le `<head>` le lien des polices et `../css/charte.css`, puis `../css/seances.css` après ton propre `<style>`.
+
+## Séances du groupe
+
+Dans l'onglet Séances, chacun peut créer une séance pour son sport. Le sport choisi pré-remplit les blocs (échauffement, corps de séance…), l'unité proposée (mètres, essais, séries) et des suggestions d'exercices. Ces réglages sont dans `SPORTS`, en haut de `js/seances.js` : pour ajouter un sport, ajoute une ligne.
+
+Les séances sont dans la table `ft_seances` de la base Supabase. Les blocs y sont enregistrés en JSON : `[{titre, ex: [{dose, nom, note}]}]`.
+
+Un lien de la forme `…/training/#seance-<id>` ouvre directement une séance. C'est le lien envoyé par le bouton Partager.
