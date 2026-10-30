@@ -13,7 +13,8 @@ async function repeatActivity(id) {
   $('addTitle').textContent = 'Refaire cette activité';
   $('addForm').reset(); $('repeatOpts').hidden = true; $('slotRows').innerHTML = ''; setMulti(false);
   $('fTitre').value = a.titre; $('fDate').min = today; $('fDate').value = d; $('fHeure').value = hh;
-  $('fLieu').value = a.lieu || ''; $('fPlaces').value = a.places || ''; $('fDesc').value = a.description || ''; $('addErr').textContent = '';
+  $('fLieu').value = a.lieu || ''; $('fPlaces').value = a.places || '';
+  $('fSeance').hidden = true; $('addPlus').open = !!(a.places || a.description); $('fDesc').value = a.description || ''; $('addErr').textContent = '';
   $('addDlg').showModal();
 }
 

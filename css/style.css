@@ -328,3 +328,32 @@ dialog.run .actions{position:sticky;bottom:0;background:var(--papier);border-top
 .snum{font-family:var(--f-titre);font-weight:400;flex:1}
 .horsligne{border:var(--trait) solid var(--encre);background:var(--encre);color:var(--papier);font-weight:700;font-size:.88rem;padding:8px 12px;margin-bottom:12px}
 .selseance{font:inherit;width:100%;padding:11px 12px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}
+
+/* Mode séance : exercice en cours mis en avant, les autres en lignes compactes */
+.runex{cursor:pointer;gap:6px;padding:8px 12px}
+.runex .rline{display:flex;gap:10px;align-items:baseline}
+.runex .retat{flex:none;width:2.4em;font-weight:800;color:var(--foret-txt);font-variant-numeric:tabular-nums}
+.runex .rtxt{flex:1;min-width:0}
+.runex.cur{cursor:default;border-color:var(--electrique);box-shadow:0 0 0 3px var(--papier),0 0 0 6px var(--electrique);padding:14px;margin:14px 0}
+.runex.cur .rtxt{font-size:1.15rem}
+.runex.cur .runbtns{padding-left:0}
+.runex.cur .btn.primary{flex:1 1 100%;font-size:1.1rem;min-height:54px;order:-1}
+.runex.done:not(.cur){opacity:.55}
+.runex.done:not(.cur) .rtxt{text-decoration:line-through}
+.runex.skip:not(.cur){opacity:.45;border-style:dashed}
+.runex.skip .retat{color:var(--encre-douce)}
+#runFin.pulse{box-shadow:0 0 0 3px var(--papier),0 0 0 6px var(--foret)}
+
+/* Formulaire : options repliées et séance en boutons */
+details.plus{margin-top:16px;border-top:var(--trait-fin) solid var(--encre);padding-top:8px}
+details.plus>summary{cursor:pointer;font-weight:800;padding:8px 0;list-style:none}
+details.plus>summary::-webkit-details-marker{display:none}
+details.plus>summary::after{content:" ▾"}
+details.plus[open]>summary::after{content:" ▴"}
+.seancechips{margin-top:0}
+.seancechips button[aria-pressed="true"]{background:var(--electrique);border-color:var(--electrique);color:var(--sur-accent)}
+.seancechips [data-sautre]{border-style:dashed}
+.selseance{margin-top:8px}
+.runex.cur{opacity:1}
+.runex.cur.done .rtxt,.runex.cur label>span{text-decoration:none}
+.runex .retat{width:2.8em;white-space:nowrap}

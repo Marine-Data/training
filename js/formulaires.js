@@ -13,6 +13,7 @@ function openEdit(id, focus) {
   seanceLiee = a.seance_id || null;
   $('ePlaces').value = a.places || '';
   $('eLieu').value = a.lieu || ''; $('eTitre').value = a.titre; $('eDesc').value = a.description || ''; $('eErr').textContent = '';
+  $('eSeance').hidden = true;
   prepSeanceSelect('eSeance');
   $('eDel').hidden = !(me && norm(a.organisateur) === norm(me));
   $('editDlg').showModal();
@@ -100,15 +101,34 @@ function fillSeanceSelect(id, val) {
     `<optgroup label="${esc(sp)}${sp === devine ? ' (suggéré)' : ''}">${parSport[sp].sort((a, b) => a.titre.localeCompare(b.titre, 'fr', {numeric: true}))
       .map(s => `<option value="${s.id}">${esc(s.titre)}</option>`).join('')}</optgroup>`).join('');
   $(id).value = val && seances.some(s => s.id === val) ? val : '';
+  renderSeanceChips(id, devine);
 }
+// Séances en boutons : les plus utilisées du sport deviné, la séance choisie, « Autre… » pour la liste complète.
+function renderSeanceChips(id, devine) {
+  const box = $(id + 'Chips'), choisie = seances.find(s => s.id === seanceLiee);
+  const usage = s => activities.filter(a => a.seance_id === s.id).length;
+  // Sport pas encore deviné (nom vide) : seulement le bouton pour ouvrir la liste.
+  let top = !devine ? [] : seances.filter(s => s.sport === devine)
+    .sort((a, b) => usage(b) - usage(a) || a.titre.localeCompare(b.titre, 'fr', {numeric: true})).slice(0, 4);
+  if (choisie && !top.includes(choisie)) top = [choisie, ...top.slice(0, 3)];
+  box.innerHTML = top.map(s => `<button type="button" data-sch="${s.id}" aria-pressed="${s.id === seanceLiee}">${sportOf(s.sport).emo} ${esc(s.titre)}</button>`).join('') +
+    (seanceLiee ? `<button type="button" data-sch="">✕ Aucune</button>` : '') +
+    `<button type="button" data-sautre="1">${top.length ? 'Autre…' : 'Choisir une séance…'}</button>`;
+}
+document.addEventListener('click', e => {
+  const c = e.target.closest('[data-sch],[data-sautre]'); if (!c || !c.parentElement.classList.contains('seancechips')) return;
+  const sel = c.parentElement.id.replace('Chips', '');
+  if (c.dataset.sautre) { $(sel).hidden = false; $(sel).focus(); return; }
+  seanceLiee = c.dataset.sch || null; $(sel).value = seanceLiee || ''; fillSeanceSelect(sel, seanceLiee);
+});
 async function prepSeanceSelect(id) {
   fillSeanceSelect(id, seanceLiee);
   if (!seLoaded) { await loadSeances(); fillSeanceSelect(id, seanceLiee); }
 }
-['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; }));
+['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; fillSeanceSelect(id, seanceLiee); }));
 // Le nom ou le lieu change : on remet les séances du bon sport en tête.
 [['fTitre', 'fSeance'], ['fLieu', 'fSeance'], ['eTitre', 'eSeance'], ['eLieu', 'eSeance']].forEach(([c, s]) =>
-  $(c).addEventListener('change', () => fillSeanceSelect(s, seanceLiee)));
+  $(c).addEventListener('input', () => fillSeanceSelect(s, seanceLiee)));
 function setMulti(on) {
   $('fixedWhen').hidden = on; $('pollWhen').hidden = !on;
   $('repeatWrap').hidden = on; if (on) { $('fRepeat').checked = false; $('repeatOpts').hidden = true; }
@@ -127,6 +147,7 @@ $('addBtn').onclick = async () => {
   slotPrefill = null; pendingEnd = null; seanceLiee = null; $('addTitle').textContent = 'Proposer une activité';
   $('addForm').reset(); $('repeatOpts').hidden = true; lieuChoisi = null; renderLieuxSugg(); $('slotRows').innerHTML = ''; setMulti(false);
   $('fDate').min = todayStr(); $('fDate').value = todayStr(); $('addErr').textContent = '';
+  $('fSeance').hidden = true; $('addPlus').open = false;
   prepSeanceSelect('fSeance');
   $('addDlg').showModal();
 };

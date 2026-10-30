@@ -56,7 +56,7 @@ function lancerChrono(mode, secondes, label) {
 function arreterChrono() { clearInterval(tick); tick = null; chrono = null; majChrono(); }
 function majChrono() {
   const box = $('runTimer');
-  if (!chrono) { box.className = 'runtimer'; box.innerHTML = `<span class="tlabel">Touche ⏱ sur un exercice pour lancer sa récup</span><span class="tbig">–:––</span>
+  if (!chrono) { box.className = 'runtimer'; box.innerHTML = `<span class="tlabel">La récup se lance quand tu touches « Fait »</span><span class="tbig">–:––</span>
       <button type="button" class="btn small" data-run="libre">⏱ Chrono libre</button>`; return; }
   if (chrono.mode === 'down') {
     const reste = Math.max(0, (chrono.fin - Date.now()) / 1000);
@@ -72,37 +72,72 @@ function majChrono() {
   }
 }
 
-/* Écran de séance */
+/* Écran de séance : toute la séance reste visible ; l'exercice en cours est mis en avant.
+   On peut le faire (la récup se lance seule), le refaire, le passer, ou toucher n'importe quel autre exercice. */
 function demarrerSeance(s) {
-  run = {s, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => ({bloc: b.titre, x, done: false})))};
+  run = {s, cur: 0, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => ({bloc: b.titre, x, n: 0, passe: false})))};
   $('runTitre').textContent = s.titre;
   renderRun();
   majChrono();
   $('runDlg').showModal();
   garderEcranAllume();
 }
+const traite = it => it.n > 0 || it.passe;
+// Exercice suivant à faire : après celui-ci d'abord, puis ceux restés en arrière.
+function suivant(depuis) {
+  const L = run.items.length;
+  for (let k = 1; k <= L; k++) { const i = (depuis + k) % L; if (!traite(run.items[i])) return i; }
+  return -1;
+}
 function renderRun() {
-  const faits = run.items.filter(i => i.done).length;
-  $('runProg').textContent = faits + ' / ' + run.items.length;
-  $('runBar').style.width = (run.items.length ? faits / run.items.length * 100 : 0) + '%';
+  const faits = run.items.filter(i => i.n > 0).length, passes = run.items.filter(i => i.passe).length;
+  $('runProg').textContent = faits + ' / ' + run.items.length + (passes ? ' · ' + passes + ' passé' + (passes > 1 ? 's' : '') : '');
+  $('runBar').style.width = (run.items.length ? (faits + passes) / run.items.length * 100 : 0) + '%';
   let bloc = null;
   $('runList').innerHTML = run.items.map((it, i) => {
     const head = it.bloc !== bloc ? `<h3>${esc(bloc = it.bloc || 'Bloc')}</h3>` : '';
-    const d = dureeEx(it.x), r = recupDe(it.x);
-    return head + `<div class="runex${it.done ? ' done' : ''}">
-      <label><input type="checkbox" data-i="${i}"${it.done ? ' checked' : ''}><span><b>${esc(it.x.dose || '')}</b> ${esc(it.x.nom)}${it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></label>
-      ${d || r ? `<div class="runbtns">${d ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}</div>` : ''}
+    const d = dureeEx(it.x), r = recupDe(it.x), actif = i === run.cur;
+    const etat = it.n > 1 ? '✓ ×' + it.n : it.n ? '✓' : it.passe ? '↷' : '';
+    return head + `<div class="runex${actif ? ' cur' : ''}${it.n ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
+      <div class="rline"><span class="retat" aria-hidden="true">${etat}</span>
+        <span class="rtxt"><b>${esc(it.x.dose || '')}</b> ${esc(it.x.nom)}
+        ${actif && it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${actif && typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></div>
+      ${actif ? `<div class="runbtns">
+        ${d ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
+        ${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
+        <button type="button" class="btn primary" data-run="fait">✓ Fait</button>
+        ${it.n ? `<button type="button" class="btn small" data-run="encore">↻ Encore une fois</button>` : ''}
+        ${it.n || it.passe ? `<button type="button" class="btn small" data-run="annuler">Remettre à faire</button>` : `<button type="button" class="btn small" data-run="passer">↷ Passer</button>`}
+      </div>` : ''}
     </div>`;
   }).join('');
-  $('runFin').textContent = faits === run.items.length && faits ? '✓ Séance terminée, je l’enregistre' : '✓ J’ai fini la séance';
+  const fini = run.items.every(traite);
+  $('runFin').textContent = fini && faits ? '✓ Séance terminée, je l’enregistre' : '✓ J’ai fini la séance';
+  $('runFin').classList.toggle('pulse', fini && faits > 0);
 }
-$('runList').addEventListener('change', e => {
-  const c = e.target.closest('[data-i]'); if (!c) return;
-  run.items[+c.dataset.i].done = c.checked; renderRun();
+function allerA(i) {
+  run.cur = i; renderRun();
+  const el = $('runList').querySelector('.runex.cur');
+  if (el) el.scrollIntoView({block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+}
+// Toucher un exercice le met en avant (on fait dans l'ordre qu'on veut).
+$('runList').addEventListener('click', e => {
+  if (e.target.closest('button')) return;
+  const el = e.target.closest('[data-sel]'); if (el && +el.dataset.sel !== run.cur) allerA(+el.dataset.sel);
 });
+function action(a) {
+  const it = run.items[run.cur], r = recupDe(it.x);
+  if (a === 'fait' || a === 'encore') {
+    it.n++; it.passe = false;
+    if (r) lancerChrono('down', r, 'Récup');
+    if (a === 'fait') { const nx = suivant(run.cur); nx >= 0 ? allerA(nx) : renderRun(); } else renderRun();
+  } else if (a === 'passer') { it.passe = true; const nx = suivant(run.cur); nx >= 0 ? allerA(nx) : renderRun(); }
+  else if (a === 'annuler') { it.n = 0; it.passe = false; renderRun(); }
+}
 $('runDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-run]'); if (!b) return;
   const a = b.dataset.run;
+  if (['fait', 'encore', 'passer', 'annuler'].includes(a)) { action(a); return; }
   if (a === 'ex') lancerChrono('down', +b.dataset.s, b.dataset.l);
   else if (a === 'recup') lancerChrono('down', +b.dataset.s, 'Récup');
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');

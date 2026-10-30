@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/charte.css?v=20261030h">
-<link rel="stylesheet" href="css/style.css?v=20261030h">
+<link rel="stylesheet" href="css/charte.css?v=20261030j">
+<link rel="stylesheet" href="css/style.css?v=20261030j">
 </head>
 </head>
 <body>
@@ -137,18 +137,9 @@
     <label for="fTitre">Quoi ?</label>
     <input id="fTitre" maxlength="120" placeholder="Ex : Natation, running, street workout…" required>
     <div class="sugg" id="sugg"></div>
-    <label class="toggle"><input type="checkbox" id="fMulti"> Plusieurs dates possibles, on choisit selon les dispos</label>
     <div class="two" id="fixedWhen">
       <div><label for="fDate">Quand ?</label><input type="date" id="fDate" required></div>
       <div><label for="fHeure">À quelle heure ?</label><input type="time" id="fHeure"></div>
-    </div>
-    <div id="repeatWrap">
-      <label class="toggle"><input type="checkbox" id="fRepeat"> 🔁 Toutes les semaines</label>
-      <div id="repeatOpts" hidden>
-        <label for="fRepeatN">Pendant</label>
-        <select id="fRepeatN"><option value="4">4 semaines</option><option value="8" selected>8 semaines</option><option value="12">12 semaines</option><option value="16">16 semaines</option></select>
-        <p class="hint">Chaque date a ses propres inscriptions. Tu pourras annuler une date ou toutes les suivantes.</p>
-      </div>
     </div>
     <div id="pollWhen" hidden>
       <label>Dates proposées</label>
@@ -160,14 +151,26 @@
     <input id="fLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
     <div class="sugg" id="lieuxSugg"></div>
     <div class="lieuact"><button class="btn small" type="button" id="lieuSave" hidden>📍 Enregistrer ce lieu</button><button class="lien gererlieux" type="button">Gérer les lieux</button></div>
-    <label for="fSeance">Séance (optionnel)</label>
-    <select id="fSeance" class="selseance"><option value="">Aucune séance</option></select>
-    <p class="hint">Les inscrits verront « 📋 Voir la séance » sur l’activité.</p>
-    <label for="fPlaces">Places (optionnel)</label>
-    <input id="fPlaces" type="number" inputmode="numeric" min="1" max="200" placeholder="Illimité">
-    <p class="hint">Au-delà, les inscrits passent en liste d’attente et montent dès qu’une place se libère.</p>
-    <label for="fDesc">Détails (optionnel)</label>
-    <textarea id="fDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
+    <label>Séance</label>
+    <div class="sugg seancechips" id="fSeanceChips"></div>
+    <select id="fSeance" class="selseance" aria-label="Toutes les séances" hidden><option value="">Aucune séance</option></select>
+    <details class="plus" id="addPlus">
+      <summary>Plus d’options</summary>
+      <label class="toggle"><input type="checkbox" id="fMulti"> Plusieurs dates possibles, on choisit selon les dispos</label>
+      <div id="repeatWrap">
+        <label class="toggle"><input type="checkbox" id="fRepeat"> 🔁 Toutes les semaines</label>
+        <div id="repeatOpts" hidden>
+          <label for="fRepeatN">Pendant</label>
+          <select id="fRepeatN"><option value="4">4 semaines</option><option value="8" selected>8 semaines</option><option value="12">12 semaines</option><option value="16">16 semaines</option></select>
+          <p class="hint">Chaque date a ses propres inscriptions.</p>
+        </div>
+      </div>
+      <label for="fPlaces">Places</label>
+      <input id="fPlaces" type="number" inputmode="numeric" min="1" max="200" placeholder="Illimité">
+      <p class="hint">Au-delà : liste d’attente.</p>
+      <label for="fDesc">Détails</label>
+      <textarea id="fDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
+    </details>
     <p class="err" id="addErr" role="alert"></p>
     <div class="actions">
       <button class="btn" type="button" id="addCancel">Annuler</button>
@@ -280,9 +283,9 @@
     <input id="eLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
     <div class="sugg" id="eLieuxSugg"></div>
     <div class="lieuact"><button class="btn small" type="button" id="eLieuSave" hidden>📍 Enregistrer ce lieu</button><button class="lien gererlieux" type="button">Gérer les lieux</button></div>
-    <label for="eSeance">Séance (optionnel)</label>
-    <select id="eSeance" class="selseance"><option value="">Aucune séance</option></select>
-    <p class="hint">Les inscrits verront « 📋 Voir la séance » sur l’activité.</p>
+    <label>Séance</label>
+    <div class="sugg seancechips" id="eSeanceChips"></div>
+    <select id="eSeance" class="selseance" aria-label="Toutes les séances" hidden><option value="">Aucune séance</option></select>
     <label for="ePlaces">Places (optionnel)</label>
     <input id="ePlaces" type="number" inputmode="numeric" min="1" max="200" placeholder="Illimité">
     <label for="eDesc">Détails</label>
@@ -297,23 +300,23 @@
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="js/config.js?v=20261030h"></script>
-<script src="js/utils.js?v=20261030h"></script>
-<script src="js/api.js?v=20261030h"></script>
-<script src="js/meteo.js?v=20261030h"></script>
-<script src="js/lieux.js?v=20261030h"></script>
-<script src="js/code.js?v=20261030h"></script>
-<script src="js/planning.js?v=20261030h"></script>
-<script src="js/partage.js?v=20261030h"></script>
-<script src="js/formulaires.js?v=20261030h"></script>
-<script src="js/notifications.js?v=20261030h"></script>
-<script src="js/lexique.js?v=20261030h"></script>
-<script src="js/allures.js?v=20261030h"></script>
-<script src="js/progression.js?v=20261030h"></script>
-<script src="js/seances.js?v=20261030h"></script>
-<script src="js/programmes.js?v=20261030h"></script>
-<script src="js/chrono.js?v=20261030h"></script>
-<script src="js/defi.js?v=20261030h"></script>
-<script src="js/main.js?v=20261030h"></script>
+<script src="js/config.js?v=20261030j"></script>
+<script src="js/utils.js?v=20261030j"></script>
+<script src="js/api.js?v=20261030j"></script>
+<script src="js/meteo.js?v=20261030j"></script>
+<script src="js/lieux.js?v=20261030j"></script>
+<script src="js/code.js?v=20261030j"></script>
+<script src="js/planning.js?v=20261030j"></script>
+<script src="js/partage.js?v=20261030j"></script>
+<script src="js/formulaires.js?v=20261030j"></script>
+<script src="js/notifications.js?v=20261030j"></script>
+<script src="js/lexique.js?v=20261030j"></script>
+<script src="js/allures.js?v=20261030j"></script>
+<script src="js/progression.js?v=20261030j"></script>
+<script src="js/seances.js?v=20261030j"></script>
+<script src="js/programmes.js?v=20261030j"></script>
+<script src="js/chrono.js?v=20261030j"></script>
+<script src="js/defi.js?v=20261030j"></script>
+<script src="js/main.js?v=20261030j"></script>
 </body>
 </html>
