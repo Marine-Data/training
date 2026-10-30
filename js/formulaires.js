@@ -79,6 +79,7 @@ let slotPrefill = null, pendingEnd = null; // utilisés quand on « refait » un
 let seanceLiee = null; // séance liée à l'activité proposée (bouton « Proposer au planning »)
 function setMulti(on) {
   $('fixedWhen').hidden = on; $('pollWhen').hidden = !on;
+  $('repeatWrap').hidden = on; if (on) { $('fRepeat').checked = false; $('repeatOpts').hidden = true; }
   $('fDate').required = !on;
   if (on && !$('slotRows').children.length) {
     if (slotPrefill) { addSlotRow(slotPrefill.date, slotPrefill.heure); addSlotRow(addDays(slotPrefill.date, 1), slotPrefill.heure); }
@@ -87,11 +88,12 @@ function setMulti(on) {
 }
 $('fMulti').onchange = e => setMulti(e.target.checked);
 $('addSlot').onclick = () => addSlotRow();
+$('fRepeat').onchange = e => { $('repeatOpts').hidden = !e.target.checked; };
 
 $('addBtn').onclick = async () => {
   if (!(await ensureName())) return;
   slotPrefill = null; pendingEnd = null; seanceLiee = null; $('addTitle').textContent = 'Proposer une activité';
-  $('addForm').reset(); $('slotRows').innerHTML = ''; setMulti(false);
+  $('addForm').reset(); $('repeatOpts').hidden = true; $('slotRows').innerHTML = ''; setMulti(false);
   $('fDate').min = todayStr(); $('fDate').value = todayStr(); $('addErr').textContent = '';
   $('addDlg').showModal();
 };
@@ -117,6 +119,15 @@ $('addForm').onsubmit = async e => {
     seance_id: seanceLiee
   };
   try {
+    // Activité récurrente : une activité par semaine, reliées par le même serie_id.
+    if (!multi && $('fRepeat').checked) {
+      const n = parseInt($('fRepeatN').value, 10) || 8, serie = crypto.randomUUID();
+      const rows = await api('/ft_activites', {method: 'POST', headers: {Prefer: 'return=representation'},
+        body: JSON.stringify(Array.from({length: n}, (_, k) => ({...body, date: addDays(body.date, 7 * k), serie_id: serie})))});
+      await api('/ft_inscriptions', {method: 'POST', body: JSON.stringify(rows.map(r => ({activite_id: r.id, prenom: me}))), headers: {Prefer: 'return=minimal'}});
+      $('addDlg').close(); toast(n + ' dates publiées 🔁'); load();
+      btn.disabled = false; return;
+    }
     const [row] = await api('/ft_activites', {method: 'POST', body: JSON.stringify(body), headers: {Prefer: 'return=representation'}});
     if (multi) {
       // le créateur est dispo sur toutes ses dates par défaut (il peut décocher)

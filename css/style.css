@@ -269,3 +269,9 @@ dialog.run .actions{position:sticky;bottom:0;background:var(--papier);border-top
 .histo li span{color:var(--encre-douce);font-variant-numeric:tabular-nums}
 .histo li b{font-weight:700;min-width:0}
 .favs h3{font-size:1.15rem;margin:18px 0 0}
+
+/* Activités récurrentes et météo */
+.card .when{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.serie{font-size:.78rem;font-weight:800;border:var(--trait-fin) solid var(--encre);padding:1px 7px;background:var(--papier)}
+.meteo{display:inline-block;margin-top:6px;font-size:.88rem;font-weight:700;border:var(--trait-fin) dashed var(--encre);padding:2px 8px;background:var(--papier)}
+#repeatOpts select{font:inherit;width:100%;padding:10px 12px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}

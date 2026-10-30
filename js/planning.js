@@ -13,10 +13,29 @@ function scheduleDelete(id) {
   pendingDel.set(id, t);
   toast('Activité supprimée', {label: 'Annuler', fn: () => { clearTimeout(t); pendingDel.delete(id); load(); }}, 6000);
 }
+// Annuler une date et toutes les suivantes d'une série
+const pendingSeries = new Map();
+function scheduleDeleteSerie(id) {
+  const a = activities.find(x => x.id === id); if (!a || !a.serie_id) return;
+  if (!me || norm(me) !== norm(a.organisateur)) { toast('Seule la personne qui a proposé l’activité peut l’annuler.'); return; }
+  const ids = activities.filter(x => x.serie_id === a.serie_id && x.date >= a.date).map(x => x.id);
+  ids.forEach(i => pendingDel.set(i, null));
+  activities = activities.filter(x => !ids.includes(x.id)); render();
+  const filtre = '/ft_activites?serie_id=eq.' + a.serie_id + '&date=gte.' + a.date;
+  const t = setTimeout(async () => {
+    ids.forEach(i => pendingDel.delete(i)); pendingSeries.delete(filtre);
+    try { await api(filtre, {method: 'DELETE'}); } catch (e) { toast('Suppression impossible, réessaie.'); }
+    load();
+  }, 6000);
+  pendingSeries.set(filtre, t);
+  toast(ids.length + ' date' + (ids.length > 1 ? 's annulées' : ' annulée'), {label: 'Annuler', fn: () => { clearTimeout(t); pendingSeries.delete(filtre); ids.forEach(i => pendingDel.delete(i)); load(); }}, 6000);
+}
 // Si on ferme la page pendant les 6 secondes, la suppression est quand même envoyée.
 window.addEventListener('pagehide', () => {
-  pendingDel.forEach((t, id) => { clearTimeout(t); try { fetch(SB + '/ft_activites?id=eq.' + id, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
+  pendingDel.forEach((t, id) => { if (t) clearTimeout(t); else return; try { fetch(SB + '/ft_activites?id=eq.' + id, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
   pendingDel.clear();
+  pendingSeries.forEach((t, f) => { clearTimeout(t); try { fetch(SB + f, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
+  pendingSeries.clear();
 });
 
 async function load() {
@@ -34,7 +53,8 @@ function moreMenu(a, poll) {
   // Seul l'organisateur peut supprimer l'activité.
   const orga = me && norm(a.organisateur) === norm(me);
   const items = [['edit', '✎ Modifier'], ['share', '💬 Partager'],
-    ...(poll ? [] : [['ics', '📅 Mon agenda'], ['repeat', '🔁 Refaire']]), ...(orga ? [['del', '🗑 Supprimer']] : [])];
+    ...(poll ? [] : [['ics', '📅 Mon agenda'], ['repeat', '🔁 Refaire']]), ...(orga ? [['del', a.serie_id ? '🗑 Annuler cette date' : '🗑 Supprimer']] : []),
+    ...(orga && a.serie_id ? [['delserie', '🗑 Annuler les suivantes']] : [])];
   return `<details class="more" data-id="${a.id}"${openMore.has(a.id) ? ' open' : ''}><summary>Plus d’options</summary><div class="menu">${
     items.map(([k, l]) => `<button class="btn small${k === 'del' ? ' danger' : ''}" data-act="${k}" data-id="${a.id}">${l}</button>`).join('')}</div></details>`;
 }
@@ -58,6 +78,8 @@ function descHtml(a) {
 }
 
 const seanceBtn = a => a.seance_id ? `<button class="btn small" data-act="seance" data-id="${a.seance_id}">📋 Voir la séance</button>` : '';
+const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+const serieHtml = a => a.serie_id && a.date ? `<span class="serie">🔁 Chaque ${JOURS[new Date(a.date + 'T12:00:00').getDay()]}</span>` : '';
 function card(a) {
   const ins = (a.ft_inscriptions || []).slice().sort((x, y) => x.created_at.localeCompare(y.created_at));
   const mine = me && ins.find(i => norm(i.prenom) === norm(me));
@@ -66,10 +88,11 @@ function card(a) {
     : '<span class="none">Personne pour l’instant, sois le premier·ère !</span>';
   const lieu = lieuHtml(a);
   return `<article class="card ${mine ? 'me' : ''}">
-    ${timeHtml(a)}
+    <div class="when">${timeHtml(a)}${serieHtml(a)}</div>
     ${titreHtml(a)}
     ${lieu}
     <div class="meta">Proposé par ${esc(a.organisateur)}</div>
+    ${meteoHtml(a)}
     ${descHtml(a)}
     <div class="people">${people}</div>
     <div class="row">
@@ -190,6 +213,9 @@ $('list').addEventListener('click', async e => {
       toast('Date validée 🎉');
     } else if (act === 'del') {
       scheduleDelete(id);
+      return;
+    } else if (act === 'delserie') {
+      scheduleDeleteSerie(id);
       return;
     }
   } catch (err) {

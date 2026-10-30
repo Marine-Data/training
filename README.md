@@ -14,6 +14,7 @@ css/seances.css         Applique la charte aux pages de séances
 js/config.js            Adresse de la base Supabase et clés publiques
 js/utils.js             Outils partagés (dates, échappement HTML, messages)
 js/api.js               Requêtes vers la base
+js/meteo.js             Météo des activités en extérieur (Open-Meteo, Paris)
 js/planning.js          Affichage du planning, inscriptions, votes, suppression
 js/partage.js           Refaire une activité, partage WhatsApp, ajout à l'agenda
 js/formulaires.js       Proposer et modifier une activité
@@ -81,3 +82,8 @@ Les navigateurs gardent en mémoire les fichiers CSS et JS. Après chaque change
 - **Favoris** : gardés sur le téléphone.
 - **Suppression** : seule la personne qui a créé une séance ou proposé une activité voit le bouton Supprimer. Sans compte, c'est une protection contre les erreurs, pas une sécurité.
 - **Activité liée** : une activité proposée depuis une séance garde son `seance_id` et affiche « Voir la séance ».
+
+## Activités récurrentes et météo
+
+- **Toutes les semaines** : à la création, on choisit 4 à 16 semaines. Chaque date est une activité à part (inscriptions séparées), reliée aux autres par `serie_id`. Une seule notification est envoyée pour toute la série. L'organisateur peut annuler une date ou toutes les suivantes.
+- **Météo** (`js/meteo.js`) : prévisions Open-Meteo pour Paris, à l'heure de l'activité (ou sur la journée sans heure), jusqu'à 16 jours. Pas de météo pour les activités en intérieur, repérées par des mots comme piscine, salle, escalade, yoga.

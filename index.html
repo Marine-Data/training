@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/charte.css?v=20261030d">
-<link rel="stylesheet" href="css/style.css?v=20261030d">
+<link rel="stylesheet" href="css/charte.css?v=20261030e">
+<link rel="stylesheet" href="css/style.css?v=20261030e">
 </head>
 </head>
 <body>
@@ -76,6 +76,14 @@
     <div class="two" id="fixedWhen">
       <div><label for="fDate">Quand ?</label><input type="date" id="fDate" required></div>
       <div><label for="fHeure">À quelle heure ?</label><input type="time" id="fHeure"></div>
+    </div>
+    <div id="repeatWrap">
+      <label class="toggle"><input type="checkbox" id="fRepeat"> 🔁 Toutes les semaines</label>
+      <div id="repeatOpts" hidden>
+        <label for="fRepeatN">Pendant</label>
+        <select id="fRepeatN"><option value="4">4 semaines</option><option value="8" selected>8 semaines</option><option value="12">12 semaines</option><option value="16">16 semaines</option></select>
+        <p class="hint">Chaque date a ses propres inscriptions. Tu pourras annuler une date ou toutes les suivantes.</p>
+      </div>
     </div>
     <div id="pollWhen" hidden>
       <label>Dates proposées</label>
@@ -209,18 +217,19 @@
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="js/config.js?v=20261030d"></script>
-<script src="js/utils.js?v=20261030d"></script>
-<script src="js/api.js?v=20261030d"></script>
-<script src="js/planning.js?v=20261030d"></script>
-<script src="js/partage.js?v=20261030d"></script>
-<script src="js/formulaires.js?v=20261030d"></script>
-<script src="js/notifications.js?v=20261030d"></script>
-<script src="js/lexique.js?v=20261030d"></script>
-<script src="js/allures.js?v=20261030d"></script>
-<script src="js/progression.js?v=20261030d"></script>
-<script src="js/seances.js?v=20261030d"></script>
-<script src="js/chrono.js?v=20261030d"></script>
-<script src="js/main.js?v=20261030d"></script>
+<script src="js/config.js?v=20261030e"></script>
+<script src="js/utils.js?v=20261030e"></script>
+<script src="js/api.js?v=20261030e"></script>
+<script src="js/meteo.js?v=20261030e"></script>
+<script src="js/planning.js?v=20261030e"></script>
+<script src="js/partage.js?v=20261030e"></script>
+<script src="js/formulaires.js?v=20261030e"></script>
+<script src="js/notifications.js?v=20261030e"></script>
+<script src="js/lexique.js?v=20261030e"></script>
+<script src="js/allures.js?v=20261030e"></script>
+<script src="js/progression.js?v=20261030e"></script>
+<script src="js/seances.js?v=20261030e"></script>
+<script src="js/chrono.js?v=20261030e"></script>
+<script src="js/main.js?v=20261030e"></script>
 </body>
 </html>
