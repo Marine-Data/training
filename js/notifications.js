@@ -12,7 +12,8 @@ function b64ToBytes(s) {
 function renderAppBar() {
   const needIOS = isIOS && !isStandalone;
   const parts = [];
-  if (!isStandalone && (deferredInstall || needIOS)) parts.push('<button class="btn small" data-bar="install">📲 Installer l’appli</button>');
+  // Toujours proposé hors appli : si le navigateur n'offre pas l'installation directe, on explique comment faire.
+  if (!isStandalone) parts.push('<button class="btn small" data-bar="install">📲 Installer l’appli</button>');
   if (pushOK && !needIOS) parts.push(pushOn
     ? '<button class="btn small" data-bar="push-off">🔔 Notifications activées · désactiver</button>'
     : '<button class="btn small in" data-bar="push-on">🔔 Activer les notifications</button>');
@@ -63,11 +64,12 @@ $('appbar').addEventListener('click', async e => {
   const a = b.dataset.bar;
   if (a === 'install') {
     if (deferredInstall) { deferredInstall.prompt(); try { await deferredInstall.userChoice; } catch (e) {} deferredInstall = null; renderAppBar(); }
-    else $('iosDlg').showModal();
+    else $(isIOS ? 'iosDlg' : 'androidDlg').showModal();
   } else if (a === 'push-on') enablePush();
   else if (a === 'push-off') disablePush();
 });
 $('iosClose').onclick = () => $('iosDlg').close();
+$('androidClose').onclick = () => $('androidDlg').close();
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; renderAppBar(); });
 window.addEventListener('appinstalled', () => { deferredInstall = null; renderAppBar(); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
