@@ -25,6 +25,18 @@ function dureeEx(x) {
   const m = String(x.dose || '').match(/^(?:\d+\s*×\s*)?(\d+)\s*(s|min)\b/i);
   return m ? +m[1] * (m[2].toLowerCase() === 'min' ? 60 : 1) : null;
 }
+// Reps et poids notés pendant la séance : gardés sur ce téléphone, par exercice, pour la prochaine fois.
+const CHARGES_KEY = 'ft_charges';
+const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+function lireCharges() { try { return JSON.parse(localStorage.getItem(CHARGES_KEY) || '{}'); } catch (e) { return {}; } }
+function garderCharge(it) {
+  const c = lireCharges(), k = cleEx(it.x.nom), v = {};
+  if (it.dose !== (it.x.dose || '')) v.dose = it.dose;
+  if (it.kg) v.kg = it.kg;
+  if (Object.keys(v).length) c[k] = v; else delete c[k];
+  try { localStorage.setItem(CHARGES_KEY, JSON.stringify(c)); } catch (e) {}
+}
+const doseDe = it => it.dose;
 const mmss = s => Math.floor(s / 60) + ':' + String(Math.max(0, Math.floor(s % 60))).padStart(2, '0');
 
 async function garderEcranAllume() {
@@ -75,7 +87,11 @@ function majChrono() {
 /* Écran de séance : toute la séance reste visible ; l'exercice en cours est mis en avant.
    On peut le faire (la récup se lance seule), le refaire, le passer, ou toucher n'importe quel autre exercice. */
 function demarrerSeance(s) {
-  run = {s, cur: 0, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => ({bloc: b.titre, x, n: 0, passe: false})))};
+  const charges = lireCharges();
+  run = {s, cur: 0, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => {
+    const g = charges[cleEx(x.nom)] || {};
+    return {bloc: b.titre, x, n: 0, passe: false, dose: g.dose || x.dose || '', kg: g.kg || ''};
+  }))};
   $('runTitre').textContent = s.titre;
   renderRun();
   majChrono();
@@ -96,13 +112,18 @@ function renderRun() {
   let bloc = null;
   $('runList').innerHTML = run.items.map((it, i) => {
     const head = it.bloc !== bloc ? `<h3>${esc(bloc = it.bloc || 'Bloc')}</h3>` : '';
-    const d = dureeEx(it.x), r = recupDe(it.x), actif = i === run.cur;
+    const d = dureeEx({dose: doseDe(it)}), r = recupDe(it.x), actif = i === run.cur;
     const etat = it.n > 1 ? '✓ ×' + it.n : it.n ? '✓' : it.passe ? '↷' : '';
     return head + `<div class="runex${actif ? ' cur' : ''}${it.n ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
       <div class="rline"><span class="retat" aria-hidden="true">${etat}</span>
-        <span class="rtxt"><b>${esc(it.x.dose || '')}</b> ${esc(it.x.nom)}
+        <span class="rtxt"><b>${esc(doseDe(it))}</b> ${esc(it.x.nom)}${it.kg ? ` <span class="rkg">· ${esc(it.kg)} kg</span>` : ''}
         ${actif && it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${actif && typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></div>
-      ${actif ? `<div class="runbtns">
+      ${actif ? `<div class="runedit">
+        <label>Séries × reps<input type="text" data-f="dose" value="${esc(it.dose)}" placeholder="4 × 10" autocomplete="off"></label>
+        ${d ? '' : `<label>Poids<span class="kgbox"><input type="text" inputmode="decimal" data-f="kg" value="${esc(it.kg)}" placeholder="–" autocomplete="off"><span>kg</span></span></label>`}
+        ${it.dose !== (it.x.dose || '') ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
+      </div>
+      <div class="runbtns">
         ${d ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
         ${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
         <button type="button" class="btn primary" data-run="fait">✓ Fait</button>
@@ -120,9 +141,20 @@ function allerA(i) {
   const el = $('runList').querySelector('.runex.cur');
   if (el) el.scrollIntoView({block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
+// Modifier les reps ou le poids de l'exercice en cours : enregistré tout de suite, sans redessiner l'écran.
+$('runList').addEventListener('input', e => {
+  const f = e.target.dataset.f; if (!f || !run) return;
+  const it = run.items[run.cur];
+  it[f] = f === 'kg' ? e.target.value.replace(/[^\d.,]/g, '').replace('.', ',') : e.target.value;
+  if (f === 'kg' && e.target.value !== it.kg) e.target.value = it.kg;
+  garderCharge(it);
+  const b = e.target.closest('.runex').querySelector('.rtxt>b'); if (b && f === 'dose') b.textContent = it.dose;
+});
+$('runList').addEventListener('change', e => { if (e.target.dataset.f && run) renderRun(); });
+$('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
 // Toucher un exercice le met en avant (on fait dans l'ordre qu'on veut).
 $('runList').addEventListener('click', e => {
-  if (e.target.closest('button')) return;
+  if (e.target.closest('button, input, label')) return;
   const el = e.target.closest('[data-sel]'); if (el && +el.dataset.sel !== run.cur) allerA(+el.dataset.sel);
 });
 function action(a) {
@@ -138,6 +170,7 @@ $('runDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-run]'); if (!b) return;
   const a = b.dataset.run;
   if (['fait', 'encore', 'passer', 'annuler'].includes(a)) { action(a); return; }
+  if (a === 'prevu') { const it = run.items[run.cur]; it.dose = it.x.dose || ''; garderCharge(it); renderRun(); return; }
   if (a === 'ex') lancerChrono('down', +b.dataset.s, b.dataset.l);
   else if (a === 'recup') lancerChrono('down', +b.dataset.s, 'Récup');
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');

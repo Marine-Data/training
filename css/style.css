@@ -357,3 +357,14 @@ details.plus[open]>summary::after{content:" ▴"}
 .runex.cur{opacity:1}
 .runex.cur.done .rtxt,.runex.cur label>span{text-decoration:none}
 .runex .retat{width:2.8em;white-space:nowrap}
+
+/* Mode séance : reps et poids modifiables sur l'exercice en cours */
+.runedit{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}
+.runedit label{display:flex;flex-direction:column;gap:3px;margin:0;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--encre-douce);flex:1 1 9em}
+.runedit label:has([data-f="kg"]){flex:0 1 7.5em}
+.runex .runedit input{width:100%;height:auto;min-height:46px;margin:0;font:inherit;font-size:18px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--encre);background:var(--papier);border:var(--trait-fin) solid var(--encre);border-radius:0;padding:8px 10px;accent-color:auto}
+.runedit .kgbox{display:flex;align-items:center;gap:6px}
+.runedit .kgbox span{font-size:1rem;color:var(--encre);text-transform:none}
+.runedit .prevu{flex-basis:100%;font-size:.82rem}
+.runedit .lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer}
+.runex .rkg{font-weight:700;color:var(--foret-txt);white-space:nowrap}
