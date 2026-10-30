@@ -201,3 +201,14 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .tagline i{font-style:normal;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1.5px solid var(--encre);padding:0 6px;background:var(--papier)}
 .tagpick{display:flex;flex-wrap:wrap;gap:6px}
 .tagpick input:checked+span{background:var(--electrique);border-color:var(--electrique);color:var(--sur-accent)}
+/* Accueil des séances : un sport par tuile */
+.sportgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:6px}
+.stile{font:inherit;color:var(--encre);background:var(--case);border:var(--trait) solid var(--encre);box-shadow:var(--decal) var(--decal) 0 var(--ombre);border-radius:0;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:110px}
+.stile .emo{font-size:1.8rem;line-height:1}
+.stile b{font-family:var(--f-titre);font-weight:400;font-size:1.1rem;margin-top:6px;line-height:1.1}
+.stile small{color:var(--encre-douce);font-size:.85rem;font-weight:700}
+.stile:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre)}
+.sporthead{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin-top:6px}
+.sporthead .back{font:inherit;font-weight:800;font-size:.9rem;color:var(--electrique-txt);background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.sporthead h3{font-size:1.5rem}
+.disc.illus{border-style:double;border-width:5px}

@@ -75,47 +75,67 @@ async function loadSeances() {
 }
 
 /* Liste et filtres par sport */
+// Séances illustrées (pages du dossier seances/), rangées dans leur sport.
+const ILLUSTREES = {
+  'Tricking': [{titre: 'Tricking : flips et rotations', info: '2 séances de 1h15 avec fiches dessinées et tutos', href: 'seances/tricking.html'}],
+  'Natation': [{titre: 'Natation 1 500 m', info: '3 séances : celle d’Adrien, sa V2 avec planche, une avec sprints', href: 'seances/natation.html'}],
+  'Renfo':    [{titre: 'Renfo en salle', info: '1 h pour les objectifs du tricking : poirier, flips, rotations, écarts', href: 'seances/renfo.html'}]
+};
+
+// Accueil : tous les sports en tuiles. Un sport ouvert : ses filtres par type, puis ses séances.
 function renderSeances() {
-  const counts = {};
-  seances.forEach(s => counts[s.sport] = (counts[s.sport] || 0) + 1);
-  const sports = ['Tous', ...Object.keys(SPORTS).filter(k => counts[k])];
-  if (!sports.includes(seFilter)) seFilter = 'Tous';
-  // Filtre 1 : le sport
-  let html = sports.length > 1 ? `<div class="frow" aria-label="Sport">${sports.map(k =>
-    `<button type="button" class="fchip" data-sport="${esc(k)}" aria-pressed="${k === seFilter}">${k === 'Tous' ? 'Tous' : sportOf(k).emo + ' ' + esc(k)} <span>${k === 'Tous' ? seances.length : counts[k]}</span></button>`).join('')}</div>` : '';
-  // Un seul sport présent : on passe directement à ses étiquettes.
-  const eff = sports.length === 2 ? sports[1] : seFilter;
-  let list = seances.filter(s => eff === 'Tous' || s.sport === eff);
-  // Filtre 2 : les étiquettes du sport choisi (type de séance, contexte), dans l'ordre défini pour ce sport
-  if (eff !== 'Tous') {
-    const tc = {};
-    list.forEach(s => (s.tags || []).forEach(g => tc[g] = (tc[g] || 0) + 1));
-    const order = sportOf(eff).tags || [];
-    const tags = Object.keys(tc).sort((x, y) => ((order.indexOf(x) + 1) || 99) - ((order.indexOf(y) + 1) || 99));
-    if (seTag && !tc[seTag]) seTag = '';
-    if (tags.length) html += `<div class="frow tags" aria-label="Type de séance">${['', ...tags].map(g =>
-      `<button type="button" class="fchip tag" data-tag="${esc(g)}" aria-pressed="${g === seTag}">${g ? esc(g) : 'Toutes'} <span>${g ? tc[g] : list.length}</span></button>`).join('')}</div>`;
-    if (seTag) list = list.filter(s => (s.tags || []).includes(seTag));
-    // Classement : par type de séance (ordre des étiquettes du sport), puis par nom
-    const rank = s => Math.min(99, ...(s.tags || []).map(g => (order.indexOf(g) + 1) || 99));
-    list = list.slice().sort((x, y) => rank(x) - rank(y) || x.titre.localeCompare(y.titre, 'fr', {numeric: true}));
-  } else seTag = '';
-  $('seFilters').innerHTML = html;
-  $('seList').innerHTML = list.length ? list.map(s => {
-    const meta = [eff === 'Tous' ? esc(s.sport) : '', s.duree ? s.duree + ' min' : '', 'par ' + esc(s.auteur)].filter(Boolean).join(' · ');
-    const tags = (s.tags || []).length ? `<span class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</span>` : '';
-    return `<button type="button" class="disc se" data-id="${s.id}">
-      <span class="emo" aria-hidden="true">${sportOf(s.sport).emo}</span>
-      <span class="dtxt"><b>${esc(s.titre)}</b><small>${meta}</small>${tags}</span>
-      <span class="go" aria-hidden="true">→</span></button>`;
-  }).join('') : '<div class="empty">Aucune séance pour l’instant.<br>Crée la première, elle sera visible par tout le groupe.</div>';
+  if (seFilter !== 'Tous' && !SPORTS[seFilter]) seFilter = 'Tous';
+  if (seFilter === 'Tous') {
+    seTag = '';
+    $('seFilters').innerHTML = '';
+    $('seList').innerHTML = `<div class="sportgrid">${Object.keys(SPORTS).filter(k => k !== 'Autre' || seances.some(s => s.sport === 'Autre')).map(k => {
+      const n = seances.filter(s => s.sport === k).length + (ILLUSTREES[k] || []).length;
+      return `<button type="button" class="stile" data-sport="${esc(k)}"><span class="emo" aria-hidden="true">${SPORTS[k].emo}</span><b>${esc(k)}</b><small>${n ? n + ' séance' + (n > 1 ? 's' : '') : 'À créer'}</small></button>`;
+    }).join('')}</div>`;
+    return;
+  }
+  const order = sportOf(seFilter).tags || [];
+  let list = seances.filter(s => s.sport === seFilter);
+  const tc = {};
+  list.forEach(s => (s.tags || []).forEach(g => tc[g] = (tc[g] || 0) + 1));
+  const tags = Object.keys(tc).sort((x, y) => ((order.indexOf(x) + 1) || 99) - ((order.indexOf(y) + 1) || 99));
+  if (seTag && !tc[seTag]) seTag = '';
+  $('seFilters').innerHTML = `<div class="sporthead"><button type="button" class="back" data-sport="Tous">← Tous les sports</button>
+      <h3>${sportOf(seFilter).emo} ${esc(seFilter)}</h3></div>` +
+    (tags.length ? `<div class="frow tags" aria-label="Type de séance">${['', ...tags].map(g =>
+      `<button type="button" class="fchip tag" data-tag="${esc(g)}" aria-pressed="${g === seTag}">${g ? esc(g) : 'Toutes'} <span>${g ? tc[g] : list.length}</span></button>`).join('')}</div>` : '');
+  if (seTag) list = list.filter(s => (s.tags || []).includes(seTag));
+  // Classement : par type de séance (ordre des étiquettes du sport), puis par nom
+  const rank = s => Math.min(99, ...(s.tags || []).map(g => (order.indexOf(g) + 1) || 99));
+  list = list.slice().sort((x, y) => rank(x) - rank(y) || x.titre.localeCompare(y.titre, 'fr', {numeric: true}));
+  const illus = seTag ? [] : (ILLUSTREES[seFilter] || []);
+  $('seList').innerHTML = illus.map(x => `<a class="disc illus" href="${x.href}">
+      <span class="emo" aria-hidden="true">${sportOf(seFilter).emo}</span>
+      <span class="dtxt"><b>${esc(x.titre)}</b><small>${esc(x.info)}</small><span class="tagline"><i>Illustrée</i></span></span>
+      <span class="go" aria-hidden="true">→</span></a>`).join('') +
+    list.map(s => {
+      const meta = [s.duree ? s.duree + ' min' : '', 'par ' + esc(s.auteur)].filter(Boolean).join(' · ');
+      const tg = (s.tags || []).length ? `<span class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</span>` : '';
+      return `<button type="button" class="disc se" data-id="${s.id}">
+        <span class="emo" aria-hidden="true">${sportOf(s.sport).emo}</span>
+        <span class="dtxt"><b>${esc(s.titre)}</b><small>${meta}</small>${tg}</span>
+        <span class="go" aria-hidden="true">→</span></button>`;
+    }).join('') +
+    (!list.length && !illus.length ? `<div class="empty">Pas encore de séance de ${esc(seFilter.toLowerCase())}.<br>Crée la première, elle sera visible par tout le groupe.</div>` : '');
+}
+function goSport(k) {
+  seFilter = k; seTag = '';
+  renderSeances();
+  $('seNew').textContent = k === 'Tous' ? '+ Créer une séance' : '+ Créer une séance de ' + k.toLowerCase();
 }
 $('seFilters').addEventListener('click', e => {
   const b = e.target.closest('[data-sport],[data-tag]'); if (!b) return;
-  if (b.dataset.sport !== undefined) { seFilter = b.dataset.sport; seTag = ''; } else seTag = b.dataset.tag;
-  renderSeances();
+  if (b.dataset.sport !== undefined) goSport(b.dataset.sport); else { seTag = b.dataset.tag; renderSeances(); }
 });
-$('seList').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) openSeance(b.dataset.id); });
+$('seList').addEventListener('click', e => {
+  const t = e.target.closest('[data-sport]'); if (t) { goSport(t.dataset.sport); return; }
+  const b = e.target.closest('[data-id]'); if (b) openSeance(b.dataset.id);
+});
 
 /* Explication et vidéo des exercices techniques (voir lexique.js) */
 function lexHtml(nom) {
@@ -321,7 +341,7 @@ $('seForm').onsubmit = async e => {
     else [row] = await api('/ft_seances', {method: 'POST', body: JSON.stringify({...body, auteur: me}), headers: {Prefer: 'return=representation'}});
     $('seEditDlg').close();
     toast(editingSe ? 'Séance mise à jour ✅' : 'Séance publiée 🙌');
-    seFilter = row.sport;
+    seFilter = row.sport; seTag = ''; $('seNew').textContent = '+ Créer une séance de ' + row.sport.toLowerCase();
     await loadSeances();
   } catch (err) { $('seErr').textContent = 'Impossible d’enregistrer pour le moment. Réessaie.'; }
   $('seSave').disabled = false;
