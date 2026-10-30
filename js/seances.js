@@ -6,36 +6,36 @@
 const ECHAUFF_GENERIQUE = {dose: '5 min', sugg: ['Corde à sauter', 'Montées de genoux', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Squats lents']};
 const ETIR_GENERIQUE = {dose: '30 s', sugg: ['Pectoraux au mur', 'Dorsaux', 'Ischios', 'Psoas en fente', 'Épaules', 'Avant-bras et poignets']};
 const SPORTS = {
-  'Tricking': {emo: '🤸', blocs: {
+  'Tricking': {emo: '🤸', tags: ['Débutant', 'Flips', 'Rotations', 'Souplesse', 'Enchaînements'], blocs: {
     'Échauffement':  {dose: '3 par côté', sugg: ['Corde à sauter', 'Balancés de jambe', 'Kicks', 'Roue', 'Roue à une main', 'Rondade']},
     'Technique':     {dose: '5 essais', sugg: ['Papillon', 'Macaco', 'Flip arrière', 'Salto avant', 'Roue sans les mains', 'Poirier']},
     'Enchaînements': {dose: '5', sugg: ['Rondade + rebond', 'Rondade + flip', 'Élan + papillon', 'Macaco + macaco']},
     'Étirements':    {dose: '45 s', sugg: ['Grand écart antéro-postérieur', 'Grand écart facial', 'Pont', 'Chameau', 'Fente basse', 'Demi-écart']}}},
-  'Natation': {emo: '🏊', blocs: {
+  'Natation': {emo: '🏊', tags: ['Débutant', 'Technique', 'Endurance', 'Vitesse', 'Avec matériel'], blocs: {
     'Échauffement':    {dose: '200 m', sugg: ['Crawl souple', 'Dos', 'Brasse', 'Éducatifs']},
     'Corps de séance': {dose: '4 × 100 m', sugg: ['Crawl', 'Jambes avec planche', 'Pull-buoy', 'Sprints 25 m', 'Pyramide', 'Brasse']},
     'Retour au calme': {dose: '100 m', sugg: ['Nage libre souple', 'Dos souple']}}},
-  'Running': {emo: '🏃', blocs: {
+  'Running': {emo: '🏃', tags: ['VMA', 'Fractionné moyen', 'Fractionné long', 'Pyramide', 'Mixte', 'Fartlek', 'Test', 'En équipe', 'Endurance', 'Reprise', 'Avant course', 'Allure 10 km', 'Chaleur'], blocs: {
     'Échauffement':    {dose: '10 min', sugg: ['Footing lent', 'Gammes', 'Accélérations progressives']},
     'Corps de séance': {dose: '6 × 400 m', sugg: ['Fractionné 400 m', '30/30', 'Côtes', 'Allure tempo', 'Sortie longue']},
     'Retour au calme': {dose: '5 min', sugg: ['Footing lent', 'Marche', 'Étirements mollets']}}},
-  'Renfo': {emo: '💪', blocs: {
+  'Renfo': {emo: '💪', tags: ['Débutant', 'Haut du corps', 'Bas du corps', 'Gainage', 'Pour le tricking'], blocs: {
     'Échauffement': {dose: '5 min', sugg: ['Rameur', 'Vélo', 'Corde à sauter', 'Mobilité des épaules', 'Squats à vide']},
     'Force':        {dose: '4 × 8', sugg: ['Squats', 'Soulevé de terre', 'Tractions', 'Pompes', 'Fentes', 'Dips', 'Développé militaire']},
     'Gainage':      {dose: '3 × 30 s', sugg: ['Planche', 'Planche latérale', 'Hollow hold', 'Dead bug', 'Superman']},
     'Étirements':   ETIR_GENERIQUE}},
   // Pensé pour un parc de street workout en extérieur : barre fixe, barres parallèles, barre basse, espalier, banc.
-  'Street workout': {emo: '🏋️', desc: 'Parc de street workout : barre fixe, barres parallèles, barre basse, banc…', blocs: {
+  'Street workout': {emo: '🏋️', tags: ['Débutant', 'Tractions', 'Poussée', 'Skills', 'Gainage'], desc: 'Parc de street workout : barre fixe, barres parallèles, barre basse, banc…', blocs: {
     'Échauffement': {dose: '10 rép.', sugg: ['Corde à sauter|5 min', 'Course à pied|10 min', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Rotations de chevilles', 'Ouverture thoracique', 'Chat-vache', 'Scapula pull-ups à la barre fixe', 'Pompes scapulaires', 'Suspension à la barre fixe|3 × 20 s']},
     'Force':        {dose: '3 × 6', sugg: ['Tractions à la barre fixe', 'Tractions négatives|3 × 4', 'Australian pull-ups à la barre basse|3 × 8', 'Dips aux barres parallèles', 'Dips sur banc|3 × 10', 'Pompes', 'Pompes inclinées sur barre basse|3 × 10', 'Pompes déclinées pieds sur banc', 'Relevés de genoux suspendu|3 × 8', 'Step-ups sur banc|3 × 10']},
     'Skills':       {dose: '5 × 10 s', sugg: ['Support aux barres parallèles|3 × 20 s', 'L-sit aux barres parallèles', 'Tuck front lever à la barre fixe', 'Skin the cat|3 × 3', 'Handstand contre un mur', 'Muscle-up à la barre fixe|3 × 2']},
     'Étirements':   {dose: '30 s', sugg: ['Dorsaux suspendu à la barre', 'Pectoraux aux barres parallèles', 'Épaules à l’espalier', 'Avant-bras et poignets', 'Mollets sur une marche', 'Pike stretch', 'Pancake']}}},
-  'Gym suédoise': {emo: '🧘', blocs: {
+  'Gym suédoise': {emo: '🧘', tags: ['Doux', 'Intense', 'Sans matériel'], blocs: {
     'Échauffement':  {dose: '1 min', sugg: ['Marche active', 'Montées de genoux', 'Rotations de bras', 'Talons-fesses']},
     'Cardio':        {dose: '2 min', sugg: ['Jumping jacks', 'Burpees', 'Pas chassés', 'Talons-fesses']},
     'Renforcement':  {dose: '1 min', sugg: ['Squats', 'Fentes', 'Pompes', 'Gainage']},
     'Étirements':    ETIR_GENERIQUE}},
-  'Yoga': {emo: '🪷', blocs: {
+  'Yoga': {emo: '🪷', tags: ['Doux', 'Souplesse', 'Récupération'], blocs: {
     'Centrage':   {dose: '1 min', sugg: ['Respiration ventrale', 'Posture de l’enfant', 'Chat-vache']},
     'Postures':   {dose: '5 respirations', sugg: ['Salutation au soleil', 'Chien tête en bas', 'Guerrier II', 'Pigeon', 'Pont']},
     'Relaxation': {dose: '3 min', sugg: ['Torsion allongée', 'Savasana']}}},
@@ -59,6 +59,7 @@ function blocInfo(sport, titre) {
 
 let seances = [];
 let seFilter = 'Tous';
+let seTag = '';  // étiquette choisie dans le sport filtré
 let seLoaded = false;
 const pendingSeDel = new Map();
 
@@ -79,19 +80,41 @@ function renderSeances() {
   seances.forEach(s => counts[s.sport] = (counts[s.sport] || 0) + 1);
   const sports = ['Tous', ...Object.keys(SPORTS).filter(k => counts[k])];
   if (!sports.includes(seFilter)) seFilter = 'Tous';
-  $('seFilters').innerHTML = sports.length > 2 ? sports.map(k =>
-    `<button type="button" class="fchip" data-sport="${esc(k)}" aria-pressed="${k === seFilter}">${k === 'Tous' ? 'Tous' : sportOf(k).emo + ' ' + esc(k)} <span>${k === 'Tous' ? seances.length : counts[k]}</span></button>`).join('') : '';
-  const list = seances.filter(s => seFilter === 'Tous' || s.sport === seFilter);
+  // Filtre 1 : le sport
+  let html = sports.length > 2 ? `<div class="frow" aria-label="Sport">${sports.map(k =>
+    `<button type="button" class="fchip" data-sport="${esc(k)}" aria-pressed="${k === seFilter}">${k === 'Tous' ? 'Tous' : sportOf(k).emo + ' ' + esc(k)} <span>${k === 'Tous' ? seances.length : counts[k]}</span></button>`).join('')}</div>` : '';
+  // Un seul sport présent : on passe directement à ses étiquettes.
+  const eff = sports.length === 2 ? sports[1] : seFilter;
+  let list = seances.filter(s => eff === 'Tous' || s.sport === eff);
+  // Filtre 2 : les étiquettes du sport choisi (type de séance, contexte), dans l'ordre défini pour ce sport
+  if (eff !== 'Tous') {
+    const tc = {};
+    list.forEach(s => (s.tags || []).forEach(g => tc[g] = (tc[g] || 0) + 1));
+    const order = sportOf(eff).tags || [];
+    const tags = Object.keys(tc).sort((x, y) => ((order.indexOf(x) + 1) || 99) - ((order.indexOf(y) + 1) || 99));
+    if (seTag && !tc[seTag]) seTag = '';
+    if (tags.length) html += `<div class="frow tags" aria-label="Type de séance">${['', ...tags].map(g =>
+      `<button type="button" class="fchip tag" data-tag="${esc(g)}" aria-pressed="${g === seTag}">${g ? esc(g) : 'Toutes'} <span>${g ? tc[g] : list.length}</span></button>`).join('')}</div>`;
+    if (seTag) list = list.filter(s => (s.tags || []).includes(seTag));
+    // Classement : par type de séance (ordre des étiquettes du sport), puis par nom
+    const rank = s => Math.min(99, ...(s.tags || []).map(g => (order.indexOf(g) + 1) || 99));
+    list = list.slice().sort((x, y) => rank(x) - rank(y) || x.titre.localeCompare(y.titre, 'fr', {numeric: true}));
+  } else seTag = '';
+  $('seFilters').innerHTML = html;
   $('seList').innerHTML = list.length ? list.map(s => {
-    const nb = (s.blocs || []).reduce((n, b) => n + (b.ex || []).length, 0);
-    const meta = [esc(s.sport), s.duree ? s.duree + ' min' : '', nb + ' exercice' + (nb > 1 ? 's' : ''), 'par ' + esc(s.auteur)].filter(Boolean).join(' · ');
+    const meta = [eff === 'Tous' ? esc(s.sport) : '', s.duree ? s.duree + ' min' : '', 'par ' + esc(s.auteur)].filter(Boolean).join(' · ');
+    const tags = (s.tags || []).length ? `<span class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</span>` : '';
     return `<button type="button" class="disc se" data-id="${s.id}">
       <span class="emo" aria-hidden="true">${sportOf(s.sport).emo}</span>
-      <span class="dtxt"><b>${esc(s.titre)}</b><small>${meta}</small></span>
+      <span class="dtxt"><b>${esc(s.titre)}</b><small>${meta}</small>${tags}</span>
       <span class="go" aria-hidden="true">→</span></button>`;
   }).join('') : '<div class="empty">Aucune séance pour l’instant.<br>Crée la première, elle sera visible par tout le groupe.</div>';
 }
-$('seFilters').addEventListener('click', e => { const b = e.target.closest('[data-sport]'); if (b) { seFilter = b.dataset.sport; renderSeances(); } });
+$('seFilters').addEventListener('click', e => {
+  const b = e.target.closest('[data-sport],[data-tag]'); if (!b) return;
+  if (b.dataset.sport !== undefined) { seFilter = b.dataset.sport; seTag = ''; } else seTag = b.dataset.tag;
+  renderSeances();
+});
 $('seList').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) openSeance(b.dataset.id); });
 
 /* Explication et vidéo des exercices techniques (voir lexique.js) */
@@ -111,6 +134,7 @@ function openSeance(id) {
   $('seView').innerHTML = `
     <span class="badge">${sportOf(s.sport).emo} ${esc(s.sport)}</span>
     <h2>${esc(s.titre)}</h2>
+    ${(s.tags || []).length ? `<p class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</p>` : ''}
     <p class="meta">${meta}</p>
     ${s.description ? `<p class="desc">${linkify(s.description)}</p>` : ''}
     ${(s.blocs || []).filter(b => (b.ex || []).length).map(b => `
@@ -136,6 +160,7 @@ $('seActions').addEventListener('click', async e => {
 /* Partager sur WhatsApp */
 function seanceText(s, withLink) {
   const L = [`${sportOf(s.sport).emo} *${s.titre}*`, [s.sport, s.duree ? s.duree + ' min' : '', 'par ' + s.auteur].filter(Boolean).join(' · ')];
+  if ((s.tags || []).length) L.push(s.tags.map(g => '#' + g.replace(/\s+/g, '')).join(' '));
   if (s.description) L.push('', s.description);
   (s.blocs || []).filter(b => (b.ex || []).length).forEach(b => {
     L.push('', '*' + (b.titre || 'Bloc') + '*');
@@ -212,6 +237,13 @@ function refreshBloc(el) {
   el.querySelector('.sugg').innerHTML = suggHtml(info);
   el.querySelectorAll('.xd').forEach(i => i.placeholder = info.dose);
 }
+// Étiquettes : celles proposées pour le sport, plus celles déjà posées sur la séance.
+function fillTags(sel) {
+  const all = [...new Set([...(sportOf(currentSport()).tags || []), ...sel])];
+  $('seTags').innerHTML = all.map(g => `<label class="sport"><input type="checkbox" value="${esc(g)}"${sel.includes(g) ? ' checked' : ''}><span>${esc(g)}</span></label>`).join('');
+  $('seTagsWrap').hidden = !all.length;
+}
+const readTags = () => [...$('seTags').querySelectorAll('input:checked')].map(i => i.value).slice(0, 8);
 function currentSport() { const r = document.querySelector('input[name="seSport"]:checked'); return r ? r.value : 'Autre'; }
 function fillBlocs(blocs, sport) {
   const box = $('seBlocs'); box.innerHTML = '';
@@ -238,6 +270,7 @@ function openEditor(s, copy) {
   $('seDesc').value = s && s.description ? s.description : '';
   $('seDesc').placeholder = sportOf(sport).desc || 'Niveau, matériel, objectif…';
   fillBlocs(s && s.blocs && s.blocs.length ? s.blocs : Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
+  fillTags(s ? s.tags || [] : []);
   $('seErr').textContent = '';
   $('seEditDlg').showModal();
   if (!s) $('seTitre').focus();
@@ -248,6 +281,7 @@ $('seCancel').onclick = () => $('seEditDlg').close();
 // Changer de sport : si rien n'est encore saisi, on propose les blocs de ce sport ; sinon on adapte seulement les aides.
 $('seSports').addEventListener('change', () => {
   const sport = currentSport();
+  fillTags(readTags());
   $('seDesc').placeholder = sportOf(sport).desc || 'Niveau, matériel, objectif…';
   if (isBlank()) fillBlocs(Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   else fillBlocs(readBlocs(), sport);
@@ -279,7 +313,7 @@ $('seForm').onsubmit = async e => {
   if (!titre) { $('seErr').textContent = 'Donne un nom à la séance.'; $('seTitre').focus(); return; }
   if (!blocs.length) { $('seErr').textContent = 'Ajoute au moins un exercice.'; return; }
   const d = parseInt($('seDuree').value, 10);
-  const body = {sport: currentSport(), titre, duree: d > 0 && d <= 600 ? d : null, description: $('seDesc').value.trim() || null, blocs};
+  const body = {sport: currentSport(), titre, duree: d > 0 && d <= 600 ? d : null, description: $('seDesc').value.trim() || null, blocs, tags: readTags()};
   $('seSave').disabled = true;
   try {
     let row;

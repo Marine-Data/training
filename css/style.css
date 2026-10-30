@@ -192,3 +192,12 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .lex a{color:var(--electrique-txt);font-weight:800;white-space:nowrap}
 .xhelp{grid-column:1/-1;margin:0}
 .xhelp:empty{display:none}
+/* Filtres sur deux niveaux : sport, puis type de séance */
+.filters{flex-direction:column;gap:6px;overflow:visible;padding:0}
+.frow{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.frow.tags .fchip{font-weight:700;border-style:dashed}
+.frow.tags .fchip[aria-pressed="true"]{border-style:solid;background:var(--electrique);border-color:var(--electrique);color:var(--sur-accent)}
+.tagline{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.tagline i{font-style:normal;font-size:.74rem;font-weight:800;letter-spacing:.02em;border:1.5px solid var(--encre);padding:0 6px;background:var(--papier)}
+.tagpick{display:flex;flex-wrap:wrap;gap:6px}
+.tagpick input:checked+span{background:var(--electrique);border-color:var(--electrique);color:var(--sur-accent)}
