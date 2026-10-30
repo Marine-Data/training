@@ -37,6 +37,20 @@ function garderCharge(it) {
   try { localStorage.setItem(CHARGES_KEY, JSON.stringify(c)); } catch (e) {}
 }
 const doseDe = it => it.dose;
+// Séance en cours : gardée sur ce téléphone pour pouvoir quitter et reprendre là où on en était (12 h max).
+const RUN_KEY = 'ft_seance_en_cours';
+function sauverRun() {
+  if (!run) return;
+  try { localStorage.setItem(RUN_KEY, JSON.stringify({id: run.s.id, t: Date.now(), cur: run.cur, items: run.items.map(i => [i.n, i.passe ? 1 : 0, i.dose, i.kg])})); } catch (e) {}
+}
+function oublierRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
+function lireRun(s, L) {
+  try {
+    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    if (r && r.id === s.id && Date.now() - r.t < 12 * 3600e3 && r.items.length === L) return r;
+  } catch (e) {}
+  return null;
+}
 const mmss = s => Math.floor(s / 60) + ':' + String(Math.max(0, Math.floor(s % 60))).padStart(2, '0');
 
 async function garderEcranAllume() {
@@ -92,6 +106,12 @@ function demarrerSeance(s) {
     const g = charges[cleEx(x.nom)] || {};
     return {bloc: b.titre, x, n: 0, passe: false, dose: g.dose || x.dose || '', kg: g.kg || ''};
   }))};
+  const prec = lireRun(s, run.items.length);
+  if (prec && prec.items.some(([n, p]) => n || p)) {
+    prec.items.forEach(([n, p, dose, kg], i) => Object.assign(run.items[i], {n, passe: !!p, dose: dose ?? run.items[i].dose, kg: kg ?? run.items[i].kg}));
+    run.cur = Math.min(prec.cur || 0, run.items.length - 1);
+    run.repris = true;
+  } else oublierRun();
   $('runTitre').textContent = s.titre;
   renderRun();
   majChrono();
@@ -110,7 +130,7 @@ function renderRun() {
   $('runProg').textContent = faits + ' / ' + run.items.length + (passes ? ' · ' + passes + ' passé' + (passes > 1 ? 's' : '') : '');
   $('runBar').style.width = (run.items.length ? (faits + passes) / run.items.length * 100 : 0) + '%';
   let bloc = null;
-  $('runList').innerHTML = run.items.map((it, i) => {
+  $('runList').innerHTML = (run.repris ? `<p class="repris">Séance reprise là où tu en étais. <button type="button" class="lien" data-run="zero">Recommencer à zéro</button></p>` : '') + run.items.map((it, i) => {
     const head = it.bloc !== bloc ? `<h3>${esc(bloc = it.bloc || 'Bloc')}</h3>` : '';
     const d = dureeEx({dose: doseDe(it)}), r = recupDe(it.x), actif = i === run.cur;
     const etat = it.n > 1 ? '✓ ×' + it.n : it.n ? '✓' : it.passe ? '↷' : '';
@@ -121,7 +141,7 @@ function renderRun() {
       ${actif ? `<div class="runedit">
         <label>Séries × reps<input type="text" data-f="dose" value="${esc(it.dose)}" placeholder="4 × 10" autocomplete="off"></label>
         ${d ? '' : `<label>Poids<span class="kgbox"><input type="text" inputmode="decimal" data-f="kg" value="${esc(it.kg)}" placeholder="–" autocomplete="off"><span>kg</span></span></label>`}
-        ${it.dose !== (it.x.dose || '') ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
+        <small class="prevu"${it.dose !== (it.x.dose || '') ? '' : ' hidden'}>Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>
       </div>
       <div class="runbtns">
         ${d ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
@@ -135,6 +155,7 @@ function renderRun() {
   const fini = run.items.every(traite);
   $('runFin').textContent = fini && faits ? '✓ Séance terminée, je l’enregistre' : '✓ J’ai fini la séance';
   $('runFin').classList.toggle('pulse', fini && faits > 0);
+  sauverRun();
 }
 function allerA(i) {
   run.cur = i; renderRun();
@@ -147,10 +168,14 @@ $('runList').addEventListener('input', e => {
   const it = run.items[run.cur];
   it[f] = f === 'kg' ? e.target.value.replace(/[^\d.,]/g, '').replace('.', ',') : e.target.value;
   if (f === 'kg' && e.target.value !== it.kg) e.target.value = it.kg;
-  garderCharge(it);
-  const b = e.target.closest('.runex').querySelector('.rtxt>b'); if (b && f === 'dose') b.textContent = it.dose;
+  garderCharge(it); sauverRun();
+  const ex = e.target.closest('.runex');
+  ex.querySelector('.rtxt>b').textContent = it.dose;
+  ex.querySelector('.prevu').hidden = it.dose === (it.x.dose || '');
+  let kg = ex.querySelector('.rkg');
+  if (it.kg && !kg) { kg = document.createElement('span'); kg.className = 'rkg'; ex.querySelector('.rtxt>b').after(' ', kg); }
+  if (kg) { kg.textContent = it.kg ? '· ' + it.kg + ' kg' : ''; }
 });
-$('runList').addEventListener('change', e => { if (e.target.dataset.f && run) renderRun(); });
 $('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
 // Toucher un exercice le met en avant (on fait dans l'ordre qu'on veut).
 $('runList').addEventListener('click', e => {
@@ -170,14 +195,15 @@ $('runDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-run]'); if (!b) return;
   const a = b.dataset.run;
   if (['fait', 'encore', 'passer', 'annuler'].includes(a)) { action(a); return; }
+  if (a === 'zero') { run.items.forEach(i => { i.n = 0; i.passe = false; }); run.cur = 0; run.repris = false; renderRun(); $('runList').scrollTop = 0; return; }
   if (a === 'prevu') { const it = run.items[run.cur]; it.dose = it.x.dose || ''; garderCharge(it); renderRun(); return; }
   if (a === 'ex') lancerChrono('down', +b.dataset.s, b.dataset.l);
   else if (a === 'recup') lancerChrono('down', +b.dataset.s, 'Récup');
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');
   else if (a === 'stop') arreterChrono();
 });
-$('runFin').onclick = async () => { if (run && await marquerFaite(run.s)) $('runDlg').close(); };
-$('runClose').onclick = () => $('runDlg').close();
+$('runFin').onclick = async () => { if (run && await marquerFaite(run.s)) { oublierRun(); $('runDlg').close(); } };
+$('runClose').onclick = () => { sauverRun(); $('runDlg').close(); };
 $('runDlg').addEventListener('close', () => {
   clearInterval(tick); tick = null; chrono = null; run = null;
   try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null;

@@ -368,3 +368,5 @@ details.plus[open]>summary::after{content:" ▴"}
 .runedit .prevu{flex-basis:100%;font-size:.82rem}
 .runedit .lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer}
 .runex .rkg{font-weight:700;color:var(--foret-txt);white-space:nowrap}
+.repris{margin:12px 0 0;padding:8px 12px;border:var(--trait-fin) dashed var(--encre);font-size:.9rem;font-weight:700}
+.repris .lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer}
