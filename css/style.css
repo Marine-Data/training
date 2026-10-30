@@ -212,3 +212,60 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .sporthead .back{font:inherit;font-weight:800;font-size:.9rem;color:var(--electrique-txt);background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .sporthead h3{font-size:1.5rem}
 .disc.illus{border-style:double;border-width:5px}
+
+/* Fiche séance : actions */
+.seactions [hidden]{display:none}
+.btn[aria-pressed="true"]{background:var(--electrique);border-color:var(--electrique);color:var(--sur-accent)}
+
+/* Allures */
+.allures{border:var(--trait) solid var(--encre);background:var(--case);padding:12px;margin-top:10px}
+.allures label{margin-top:0}
+.vmarow{display:flex;align-items:center;gap:8px;max-width:12em}
+.vmarow span{font-weight:800}
+.tallures{border-collapse:collapse;width:100%;margin-top:10px;font-variant-numeric:tabular-nums}
+.tallures th,.tallures td{border:var(--trait-fin) solid var(--encre);padding:5px 6px;text-align:center;font-size:.88rem}
+.tallures th{background:var(--papier);font-weight:800}
+.tallures td:first-child{font-weight:800;text-align:left}
+.allure{display:block;color:var(--electrique-txt);font-weight:800;font-size:.86rem;margin-top:3px}
+
+/* Mode séance */
+dialog.run{width:min(560px,100vw);max-width:100vw;height:100dvh;max-height:100dvh;margin:0 auto;padding:0;border:0;box-shadow:none;overflow-y:auto}
+.runhead{position:sticky;top:0;z-index:2;background:var(--papier);border-bottom:var(--trait) solid var(--encre);padding:max(14px,env(safe-area-inset-top)) 16px 12px;display:flex;flex-direction:column;gap:8px}
+.runhead h2{font-size:1.3rem;margin:0}
+.runprog{display:flex;align-items:center;gap:10px}
+.runbar{flex:1;height:12px;border:var(--trait-fin) solid var(--encre);background:var(--case)}
+.runbar i{display:block;height:100%;width:0;background:var(--foret);transition:width .2s}
+.runprog b{font-family:var(--f-titre);font-weight:400;font-variant-numeric:tabular-nums}
+.runtimer{display:grid;grid-template-columns:1fr auto;grid-template-areas:"l b" "t b";align-items:center;gap:0 10px;border:var(--trait) solid var(--encre);background:var(--case);padding:8px 12px}
+.runtimer .tlabel{grid-area:l;font-weight:800;font-size:.85rem;color:var(--encre-douce)}
+.runtimer .tbig{grid-area:t;font-family:var(--f-titre);font-size:2.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.runtimer .btn{grid-area:b}
+.runtimer.on{border-color:var(--electrique);box-shadow:0 0 0 3px var(--papier),0 0 0 6px var(--electrique)}
+.runtimer.fin .tbig{color:var(--ecarlate-txt)}
+#runList{padding:4px 16px 8px}
+#runList h3{font-size:1.05rem;margin:16px 0 6px}
+.runex{border:var(--trait) solid var(--encre);background:var(--case);padding:10px 12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.runex label{display:flex;gap:12px;align-items:flex-start;margin:0;font-weight:500;font-size:1rem;cursor:pointer}
+.runex input{width:26px;height:26px;flex:none;accent-color:var(--foret);margin-top:2px}
+.runex b{font-family:var(--f-titre);font-weight:400}
+.runex small{display:block;color:var(--encre-douce);font-size:.85rem}
+.runex.done{opacity:.55}
+.runex.done label>span{text-decoration:line-through}
+.runbtns{display:flex;flex-wrap:wrap;gap:8px;padding-left:38px}
+dialog.run .actions{position:sticky;bottom:0;background:var(--papier);border-top:var(--trait) solid var(--encre);padding:12px 16px max(12px,env(safe-area-inset-bottom));margin:0}
+
+/* Accueil séances : progression et favoris */
+.sportsT{font-size:1.15rem;margin:18px 0 8px}
+.progress{border:var(--trait) solid var(--encre);background:var(--case);padding:12px 14px;box-shadow:var(--decal) var(--decal) 0 var(--electrique);margin-top:6px}
+.progress h3{font-size:1.15rem}
+.hex svg{display:block;width:100%;max-width:340px;height:auto;margin:4px auto 0}
+.hex .ring{fill:none;stroke:var(--trame);stroke-width:1.2}
+.hex .val{fill:color-mix(in srgb,var(--foret) 25%,transparent);stroke:var(--foret);stroke-width:3;stroke-linejoin:round}
+.hex .dot{fill:var(--foret);stroke:var(--case);stroke-width:2}
+.hex .lab{font-family:var(--f-texte);font-weight:800;font-size:12px;fill:var(--encre)}
+.histo summary{cursor:pointer;font-weight:800;padding:6px 0}
+.histo ul{list-style:none;margin:0;padding:0}
+.histo li{display:grid;grid-template-columns:4.2em 1fr 36px;gap:8px;align-items:center;border-top:1px solid var(--trame);padding:4px 0;font-size:.9rem}
+.histo li span{color:var(--encre-douce);font-variant-numeric:tabular-nums}
+.histo li b{font-weight:700;min-width:0}
+.favs h3{font-size:1.15rem;margin:18px 0 0}

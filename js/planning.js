@@ -3,6 +3,7 @@
 const pendingDel = new Map();
 function scheduleDelete(id) {
   const a = activities.find(x => x.id === id); if (!a) return;
+  if (!me || norm(me) !== norm(a.organisateur)) { toast('Seule la personne qui a proposé l’activité peut la supprimer.'); return; }
   activities = activities.filter(x => x.id !== id); render();
   const t = setTimeout(async () => {
     pendingDel.delete(id);
@@ -30,8 +31,10 @@ async function load() {
 
 const openMore = new Set();
 function moreMenu(a, poll) {
+  // Seul l'organisateur peut supprimer l'activité.
+  const orga = me && norm(a.organisateur) === norm(me);
   const items = [['edit', '✎ Modifier'], ['share', '💬 Partager'],
-    ...(poll ? [] : [['ics', '📅 Mon agenda'], ['repeat', '🔁 Refaire']]), ['del', '🗑 Supprimer']];
+    ...(poll ? [] : [['ics', '📅 Mon agenda'], ['repeat', '🔁 Refaire']]), ...(orga ? [['del', '🗑 Supprimer']] : [])];
   return `<details class="more" data-id="${a.id}"${openMore.has(a.id) ? ' open' : ''}><summary>Plus d’options</summary><div class="menu">${
     items.map(([k, l]) => `<button class="btn small${k === 'del' ? ' danger' : ''}" data-act="${k}" data-id="${a.id}">${l}</button>`).join('')}</div></details>`;
 }
@@ -54,6 +57,7 @@ function descHtml(a) {
     : `<div><button class="tbd lieu" data-act="edit" data-focus="desc" data-id="${a.id}">+ Ajouter des détails</button></div>`;
 }
 
+const seanceBtn = a => a.seance_id ? `<button class="btn small" data-act="seance" data-id="${a.seance_id}">📋 Voir la séance</button>` : '';
 function card(a) {
   const ins = (a.ft_inscriptions || []).slice().sort((x, y) => x.created_at.localeCompare(y.created_at));
   const mine = me && ins.find(i => norm(i.prenom) === norm(me));
@@ -70,6 +74,7 @@ function card(a) {
     <div class="people">${people}</div>
     <div class="row">
       <button class="btn small ${mine ? '' : 'in'}" data-act="${mine ? 'leave' : 'join'}" data-id="${a.id}">${mine ? 'Je ne viens plus' : '✋ Je viens'}</button>
+      ${seanceBtn(a)}
     </div>
     ${moreMenu(a, false)}
   </article>`;
@@ -102,6 +107,7 @@ function pollCard(a, today) {
     ${lieu}
     <div class="meta">Proposé par ${esc(a.organisateur)}</div>
     ${descHtml(a)}
+    ${a.seance_id ? `<div class="row">${seanceBtn(a)}</div>` : ''}
     <p class="hint">Touche les dates où tu es dispo.</p>
     ${rows}
     ${moreMenu(a, true)}
@@ -149,6 +155,7 @@ $('list').addEventListener('toggle', e => { const d = e.target; if (d.classList 
 $('list').addEventListener('click', async e => {
   const b = e.target.closest('button[data-act]'); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
+  if (act === 'seance') { ouvrirSeanceLiee(id); return; }
   if (act === 'share') { shareActivity(id); return; }
   if (act === 'ics') { downloadIcs(id); return; }
   if (act === 'repeat') { repeatActivity(id); return; }

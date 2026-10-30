@@ -18,6 +18,9 @@ js/planning.js          Affichage du planning, inscriptions, votes, suppression
 js/partage.js           Refaire une activité, partage WhatsApp, ajout à l'agenda
 js/formulaires.js       Proposer et modifier une activité
 js/lexique.js           Explication courte et vidéo YouTube de chaque exercice technique
+js/allures.js           Calculateur d'allures à partir de la VMA (running)
+js/progression.js       Favoris, séances faites et hexagone de progression
+js/chrono.js            Mode séance : exercices à cocher, chronos de récup, écran allumé
 js/seances.js           Séances du groupe : créer, modifier, dupliquer, partager, supprimer, proposer au planning
 js/notifications.js     Installation de l'appli et notifications push
 js/main.js              Démarrage et rafraîchissement automatique
@@ -69,3 +72,12 @@ Un lien de la forme `…/training/#seance-<id>` ouvre directement une séance. C
 ## Après une modification
 
 Les navigateurs gardent en mémoire les fichiers CSS et JS. Après chaque changement, mets à jour le numéro `?v=…` des liens dans `index.html` (même numéro partout) pour que tout le monde reçoive la nouvelle version.
+
+## Pendant et après la séance
+
+- **Mode séance** (`js/chrono.js`) : bouton « Démarrer la séance ». Les récups sont lues dans la consigne (« Récup 1 min 30 ») et les exercices chronométrés dans la quantité (« 3 × 30 s »). Bip et vibration à la fin du chrono.
+- **Allures** (`js/allures.js`) : la VMA est gardée sur le téléphone. Un exercice qui indique un % de VMA (« 80 à 90 % de la VMA », « Allure VMA ») affiche son temps de passage.
+- **Séances faites** : table `ft_realisations` (prénom, séance, sport, titre, date). L'hexagone compte les séances des 30 derniers jours par famille de sport.
+- **Favoris** : gardés sur le téléphone.
+- **Suppression** : seule la personne qui a créé une séance ou proposé une activité voit le bouton Supprimer. Sans compte, c'est une protection contre les erreurs, pas une sécurité.
+- **Activité liée** : une activité proposée depuis une séance garde son `seance_id` et affiche « Voir la séance ».

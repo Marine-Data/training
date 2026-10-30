@@ -68,6 +68,7 @@ async function loadSeances() {
     const rows = await api('/ft_seances?select=*&order=updated_at.desc');
     seances = rows.filter(s => !pendingSeDel.has(s.id));
     seLoaded = true;
+    await loadRealisations();
     renderSeances();
   } catch (e) {
     $('seList').innerHTML = '<div class="empty">Impossible de charger les séances. Réessaie dans un instant.</div>';
@@ -88,7 +89,7 @@ function renderSeances() {
   if (seFilter === 'Tous') {
     seTag = '';
     $('seFilters').innerHTML = '';
-    $('seList').innerHTML = `<div class="sportgrid">${Object.keys(SPORTS).filter(k => k !== 'Autre' || seances.some(s => s.sport === 'Autre')).map(k => {
+    $('seList').innerHTML = progressionHtml() + favorisHtml() + `<h3 class="sportsT">Les sports</h3><div class="sportgrid">${Object.keys(SPORTS).filter(k => k !== 'Autre' || seances.some(s => s.sport === 'Autre')).map(k => {
       const n = seances.filter(s => s.sport === k).length + (ILLUSTREES[k] || []).length;
       return `<button type="button" class="stile" data-sport="${esc(k)}"><span class="emo" aria-hidden="true">${SPORTS[k].emo}</span><b>${esc(k)}</b><small>${n ? n + ' séance' + (n > 1 ? 's' : '') : 'À créer'}</small></button>`;
     }).join('')}</div>`;
@@ -133,6 +134,7 @@ $('seFilters').addEventListener('click', e => {
   if (b.dataset.sport !== undefined) goSport(b.dataset.sport); else { seTag = b.dataset.tag; renderSeances(); }
 });
 $('seList').addEventListener('click', e => {
+  const r = e.target.closest('[data-real]'); if (r) { supprimerRealisation(r.dataset.real); return; }
   const t = e.target.closest('[data-sport]'); if (t) { goSport(t.dataset.sport); return; }
   const b = e.target.closest('[data-id]'); if (b) openSeance(b.dataset.id);
 });
@@ -157,10 +159,16 @@ function openSeance(id) {
     ${(s.tags || []).length ? `<p class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</p>` : ''}
     <p class="meta">${meta}</p>
     ${s.description ? `<p class="desc">${linkify(s.description)}</p>` : ''}
+    ${s.sport === 'Running' ? alluresBoxHtml() : ''}
     ${(s.blocs || []).filter(b => (b.ex || []).length).map(b => `
       <section class="sebloc"><h3>${esc(b.titre || 'Bloc')}</h3><ol>${b.ex.map(x => `
-        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}${lexHtml(x.nom)}</span></li>`).join('')}</ol></section>`).join('')}`;
-  $('seViewDlg').showModal();
+        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}${allureExHtml(x)}${lexHtml(x.nom)}</span></li>`).join('')}</ol></section>`).join('')}`;
+  const fav = $('seActions').querySelector('[data-se="fav"]');
+  fav.textContent = favoris.has(s.id) ? '★ En favori' : '☆ Favori';
+  fav.setAttribute('aria-pressed', String(favoris.has(s.id)));
+  // Seul l'auteur peut supprimer ; les autres peuvent modifier ou dupliquer.
+  $('seActions').querySelector('[data-se="del"]').hidden = !(me && norm(me) === norm(s.auteur));
+  if (!$('seViewDlg').open) $('seViewDlg').showModal();
   try { history.replaceState(null, '', '#seance-' + s.id); } catch (e) {}
 }
 function closeSeance() { $('seViewDlg').close(); }
@@ -175,7 +183,12 @@ $('seActions').addEventListener('click', async e => {
   else if (act === 'edit') { if (!(await ensureName())) return; closeSeance(); openEditor(s, false); }
   else if (act === 'copy') { if (!(await ensureName())) return; closeSeance(); openEditor(s, true); }
   else if (act === 'del') { closeSeance(); deleteSeance(s.id); }
+  else if (act === 'run') { closeSeance(); demarrerSeance(s); }
+  else if (act === 'done') { if (await marquerFaite(s)) closeSeance(); }
+  else if (act === 'fav') { const on = toggleFavori(s.id); toast(on ? 'Ajoutée à tes favoris ⭐' : 'Retirée de tes favoris'); openSeance(s.id); if (seFilter === 'Tous') renderSeances(); }
 });
+// Changer sa VMA recalcule les temps affichés
+$('seView').addEventListener('change', e => { if (e.target.id === 'vmaInput') { setVma(parseFloat(String(e.target.value).replace(',', '.'))); if (viewing) openSeance(viewing.id); } });
 
 /* Partager sur WhatsApp */
 function seanceText(s, withLink) {
@@ -198,6 +211,7 @@ async function planSeance(s) {
   setView('planning');
   await $('addBtn').onclick();
   if (!$('addDlg').open) return;
+  seanceLiee = s.id;
   $('fTitre').value = s.titre.slice(0, 120);
   const resume = [s.sport + (s.duree ? ' · ' + s.duree + ' min' : ''),
     ...(s.blocs || []).filter(b => (b.ex || []).length).map(b => b.titre + ' : ' + b.ex.map(x => x.nom).join(', '))];
@@ -208,6 +222,8 @@ async function planSeance(s) {
 
 /* Suppression avec « Annuler » pendant 6 secondes */
 function deleteSeance(id) {
+  const s = seances.find(x => x.id === id);
+  if (!s || !me || norm(me) !== norm(s.auteur)) { toast('Seule la personne qui a créé la séance peut la supprimer.'); return; }
   seances = seances.filter(x => x.id !== id); renderSeances();
   const t = setTimeout(async () => {
     pendingSeDel.delete(id);
@@ -353,3 +369,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const m = location.hash.match(/^#seance-([0-9a-f-]{36})$/);
   if (location.hash === '#seances' || m) { setView('seances'); await loadSeances(); if (m) openSeance(m[1]); }
 });
+
+/* Depuis une activité du planning : ouvrir la séance liée */
+async function ouvrirSeanceLiee(id) {
+  setView('seances');
+  if (!seLoaded || !seances.some(s => s.id === id)) await loadSeances();
+  if (seances.some(s => s.id === id)) openSeance(id); else toast('Cette séance a été supprimée.');
+}

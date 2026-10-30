@@ -10,6 +10,7 @@ function openEdit(id, focus) {
   $('eDate').required = !poll; $('eDate').min = todayStr();
   $('eDate').value = a.date || ''; $('eHeure').value = a.heure ? a.heure.slice(0, 5) : '';
   $('eLieu').value = a.lieu || ''; $('eTitre').value = a.titre; $('eDesc').value = a.description || ''; $('eErr').textContent = '';
+  $('eDel').hidden = !(me && norm(a.organisateur) === norm(me));
   $('editDlg').showModal();
   const target = {titre: 'eTitre', desc: 'eDesc', lieu: 'eLieu', heure: 'eHeure', date: 'eDate'}[focus] || 'eTitre';
   $(poll && (target === 'eHeure' || target === 'eDate') ? 'eLieu' : target).focus();
@@ -75,6 +76,7 @@ function readSlots(box) {
   return slots;
 }
 let slotPrefill = null, pendingEnd = null; // utilisés quand on « refait » une activité
+let seanceLiee = null; // séance liée à l'activité proposée (bouton « Proposer au planning »)
 function setMulti(on) {
   $('fixedWhen').hidden = on; $('pollWhen').hidden = !on;
   $('fDate').required = !on;
@@ -88,7 +90,7 @@ $('addSlot').onclick = () => addSlotRow();
 
 $('addBtn').onclick = async () => {
   if (!(await ensureName())) return;
-  slotPrefill = null; pendingEnd = null; $('addTitle').textContent = 'Proposer une activité';
+  slotPrefill = null; pendingEnd = null; seanceLiee = null; $('addTitle').textContent = 'Proposer une activité';
   $('addForm').reset(); $('slotRows').innerHTML = ''; setMulti(false);
   $('fDate').min = todayStr(); $('fDate').value = todayStr(); $('addErr').textContent = '';
   $('addDlg').showModal();
@@ -111,7 +113,8 @@ $('addForm').onsubmit = async e => {
     titre: $('fTitre').value.trim(), date: multi ? null : $('fDate').value, heure: multi ? null : ($('fHeure').value || null),
     duree_fin: multi ? null : pendingEnd,
     statut: multi ? 'sondage' : 'fixe',
-    lieu: $('fLieu').value.trim() || null, description: $('fDesc').value.trim() || null, organisateur: me
+    lieu: $('fLieu').value.trim() || null, description: $('fDesc').value.trim() || null, organisateur: me,
+    seance_id: seanceLiee
   };
   try {
     const [row] = await api('/ft_activites', {method: 'POST', body: JSON.stringify(body), headers: {Prefer: 'return=representation'}});
