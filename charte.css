@@ -1,0 +1,30 @@
+/* Charte graphique Freestyle Tricks : une planche de manga.
+   Papier, encre, trame et trois accents. Tous les écrans utilisent ces variables, jamais de couleur en dur.
+   Mode nuit : suit le réglage du téléphone (et data-theme si une page le pose). */
+:root{
+  /* Fonds et encre */
+  --papier:#F4F2EC; --case:#FFFFFF; --encre:#141414; --encre-douce:#5E5A52; --trame:#C9C4B8; --ombre:#141414;
+  /* Accents : en fond de bouton, texte blanc dessus */
+  --foret:#1E7A4C; --electrique:#2457E0; --ecarlate:#D62839; --sur-accent:#FFFFFF;
+  /* Accents en texte */
+  --foret-txt:#155C38; --electrique-txt:#2457E0; --ecarlate-txt:#B01E2E;
+  /* Pastilles de blocs (fond fixe, texte blanc, lisibles dans les deux modes) */
+  --bloc-gris:#5E5A52; --bloc-encre:#141414;
+  /* Typographie */
+  --f-titre:"Dela Gothic One","Arial Black",Impact,sans-serif;
+  --f-texte:"M PLUS Rounded 1c",system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* Formes */
+  --trait:3px; --trait-fin:2px; --decal:4px; --decal-fort:6px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --papier:#121110; --case:#1C1B18; --encre:#F2EFE6; --encre-douce:#A9A397; --trame:#3B3933; --ombre:#3B3933;
+  --foret-txt:#5CCB8F; --electrique-txt:#86A8FF; --ecarlate-txt:#FF7A86;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --papier:#121110; --case:#1C1B18; --encre:#F2EFE6; --encre-douce:#A9A397; --trame:#3B3933; --ombre:#3B3933;
+  --foret-txt:#5CCB8F; --electrique-txt:#86A8FF; --ecarlate-txt:#FF7A86;
+  color-scheme:dark}
+
+/* Trame de points (screentone), réservée au décor */
+.trame{background-image:radial-gradient(var(--trame) 1.1px,transparent 1.3px);background-size:7px 7px}

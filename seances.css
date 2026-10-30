@@ -1,0 +1,68 @@
+/* Séances types : applique la charte (charte.css) aux pages du dossier seances/.
+   Chargé après les styles de chaque page, il remplace leurs couleurs et formes. */
+
+/* 1. Les variables des pages pointent vers la charte (mêmes sélecteurs que leurs blocs jour/nuit) */
+:root,:root:not([data-theme="light"]),:root[data-theme="dark"]{
+  --bg:var(--papier); --surface:var(--case); --fg:var(--encre); --muted:var(--encre-douce);
+  --line:var(--encre); --limb:var(--encre-douce); --c2:var(--electrique-txt);
+  --display:var(--f-titre); --body:var(--f-texte);
+}
+/* Séances de tricking : un bloc = une pastille de la charte */
+html:has(.sess),html:has(.sess):not([data-theme="light"]),html:has(.sess)[data-theme="dark"]{
+  --c1:var(--bloc-gris);    /* Échauffement */
+  --c6:var(--bloc-encre);   /* Explosivité */
+  --c3:var(--electrique);   /* Flips */
+  --c4:var(--electrique);   /* Rotations, et exercice validé */
+  --c7:var(--foret);        /* Enchaînements */
+  --c2:var(--bloc-encre);   /* Poirier */
+  --c5:var(--bloc-gris);    /* Étirements */
+}
+
+/* 2. Titres : Dela Gothic One n'a qu'une graisse */
+h1,h2,h3,li b,.s b,.tabs button b,#histBox h3,.goal h3,.note h3,.txt h3{font-weight:400}
+
+/* 3. Cases encrées : contours 3 px, angles droits, ombre décalée pleine */
+ol,.s,#histBox,.card,.goal,.tabs button,.acc>.sh{border:var(--trait) solid var(--encre)!important;border-radius:0!important}
+ol,#histBox{box-shadow:var(--decal-fort) var(--decal-fort) 0 var(--ombre)}
+.s,.card,.goal{box-shadow:var(--decal) var(--decal) 0 var(--ombre)}
+a.s:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre)}
+li{border-top-color:var(--encre)}
+.acc>.sh{border-left:10px solid var(--k)!important;background:var(--case)}
+.tabs button[aria-selected="true"]{background:var(--encre);color:var(--papier)}
+.tabs button[aria-selected="true"] span{color:var(--papier)}
+
+/* 4. Pastilles et barre de temps */
+.goals li,.prog,.tc,.legend i,.bar,.seg{border-radius:0!important}
+.goals li{border:var(--trait-fin) solid var(--encre)!important;background:var(--case)}
+.seg{color:var(--sur-accent);outline:var(--trait-fin) solid var(--encre);outline-offset:-2px}
+.tc{color:var(--sur-accent)}
+.prog{border:var(--trait-fin) solid var(--encre)!important}
+.prog.full{background:var(--electrique);border-color:var(--electrique)!important;color:var(--sur-accent)}
+.chk{border-radius:0!important;border:var(--trait-fin) solid var(--encre)!important}
+.card.done{box-shadow:var(--decal) var(--decal) 0 var(--electrique)}
+.card.done .chk{background:var(--electrique);border-color:var(--electrique)!important;color:var(--sur-accent)}
+
+/* 5. Illustrations */
+.fig{border-bottom:var(--trait) solid var(--encre)}
+.fig .w{fill:var(--trame);stroke:var(--encre)}
+.fig .g,.fig .m,.fig .tb{stroke:var(--encre)}
+
+/* 6. Boutons */
+.wa,.bar2 button:not(#hist),#done,#save{font:inherit;font-weight:800;border:var(--trait) solid var(--encre)!important;border-radius:0!important;
+  box-shadow:var(--decal) var(--decal) 0 var(--ombre);padding:10px 16px;min-height:46px;cursor:pointer}
+.wa{background:var(--case)!important;color:var(--encre)!important}
+#done,#save{background:var(--foret)!important;color:var(--sur-accent)!important}
+.wa:active,#done:active,#save:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre)}
+#hist,.back,.tools button,.goal a,a.yt,.card h3 a{color:var(--electrique-txt)}
+#msg{color:var(--foret-txt)}
+
+/* 7. Champs */
+input,textarea,.bar2 input,.log input{border:var(--trait-fin) solid var(--encre)!important;border-radius:0!important;background:var(--case);color:var(--encre)}
+
+:focus-visible{outline:3px solid var(--electrique-txt)!important;outline-offset:3px}
+
+/* 8. Liens et repères qui utilisaient l'ancienne couleur de lien */
+.goals li a::after,.card h3 a::after,a.yt::after{color:var(--electrique-txt)!important}
+.card h3 a,a.yt{text-decoration-color:var(--electrique-txt)!important}
+.goals li:has(a){border-color:var(--encre)!important}
+.legend i{outline:1.5px solid var(--encre);outline-offset:0}
