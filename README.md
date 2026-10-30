@@ -24,7 +24,7 @@ js/formulaires.js       Proposer et modifier une activité
 js/lexique.js           Explication courte et vidéo YouTube de chaque exercice technique
 js/allures.js           Calculateur d'allures à partir de la VMA (running)
 js/progression.js       Favoris, séances faites et hexagone de progression
-js/chrono.js            Mode séance : exercices à cocher, chronos de récup, écran allumé
+js/chrono.js            Mode séance : séries, reps et poids, historique des charges, chronos de récup, récap, reprise
 js/programmes.js        Programmes sur plusieurs semaines
 js/seances.js           Séances du groupe : créer, modifier, dupliquer, partager, supprimer, proposer au planning
 js/notifications.js     Installation de l'appli et notifications push

@@ -358,15 +358,47 @@ details.plus[open]>summary::after{content:" ▴"}
 .runex.cur.done .rtxt,.runex.cur label>span{text-decoration:none}
 .runex .retat{width:2.8em;white-space:nowrap}
 
-/* Mode séance : reps et poids modifiables sur l'exercice en cours */
-.runedit{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end}
-.runedit label{display:flex;flex-direction:column;gap:3px;margin:0;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--encre-douce);flex:1 1 9em}
-.runedit label:has([data-f="kg"]){flex:0 1 7.5em}
-.runex .runedit input{width:100%;height:auto;min-height:46px;margin:0;font:inherit;font-size:18px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--encre);background:var(--papier);border:var(--trait-fin) solid var(--encre);border-radius:0;padding:8px 10px;accent-color:auto}
-.runedit .kgbox{display:flex;align-items:center;gap:6px}
-.runedit .kgbox span{font-size:1rem;color:var(--encre);text-transform:none}
-.runedit .prevu{flex-basis:100%;font-size:.82rem}
-.runedit .lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer}
+/* Mode séance : séries, reps et poids sur l'exercice en cours */
+.runtimer .tbtns{grid-area:b;display:flex;gap:6px}
+.runtimer .tbtns .btn{min-height:44px;min-width:44px;padding:4px 8px}
+.runseries{display:flex;align-items:center;gap:10px}
+.runseries b{font-family:var(--f-titre);font-weight:400;font-size:1.05rem}
+.dots{display:flex;gap:5px}
+.dots i{width:14px;height:14px;border:var(--trait-fin) solid var(--encre);background:var(--papier)}
+.dots i.ok{background:var(--foret);border-color:var(--foret)}
+.dots i.now{background:var(--electrique);border-color:var(--electrique)}
+.journal{color:var(--encre-douce);font-size:.85rem}
+.steppers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stp{display:flex;flex-direction:column;gap:3px;min-width:0}
+.stp:last-child{grid-column:1 / -1}
+.stl{font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--encre-douce)}
+.stc{display:flex;align-items:stretch;gap:3px}
+.stc .btn{min-width:42px;min-height:46px;padding:0;font-size:1.3rem;flex:none}
+.runex .stc input{flex:1;min-width:0;width:auto;height:auto;min-height:46px;margin:0;text-align:center;font:inherit;font-size:18px;font-weight:700;color:var(--encre);background:var(--papier);border:var(--trait-fin) solid var(--encre);border-radius:0;padding:4px}
+.stv{flex:1;display:flex;align-items:center;justify-content:center;font-family:var(--f-titre);font-weight:400;font-size:1.2rem;border:var(--trait-fin) solid var(--encre);background:var(--papier)}
+.stp:last-child .stv{flex:0 0 4em}
+.stc .unit{align-self:center;font-weight:700;padding-left:2px}
+.runex .prevu{font-size:.82rem}
+.lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer;text-align:left}
+.dfois{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;font-size:.88rem;border-left:4px solid var(--electrique);padding:4px 0 4px 10px}
+.dfois>span{flex:1 1 12em}
+.dfois .lien{flex-basis:100%;font-weight:700}
+.dfois .alerte{flex-basis:100%;color:var(--ecarlate-txt);font-weight:700}
+.courbe{flex:none;color:var(--electrique-txt);overflow:visible}
+.courbe polyline{fill:none;stroke:currentColor;stroke-width:2}
+.courbe circle{fill:currentColor}
+.ressenti{display:flex;flex-direction:column;gap:6px}
+.ressenti>span{font-weight:800}
+.ressenti>div{display:flex;flex-wrap:wrap;gap:6px}
 .runex .rkg{font-weight:700;color:var(--foret-txt);white-space:nowrap}
 .repris{margin:12px 0 0;padding:8px 12px;border:var(--trait-fin) dashed var(--encre);font-size:.9rem;font-weight:700}
-.repris .lien{font:inherit;background:none;border:0;padding:0;color:var(--electrique-txt);text-decoration:underline;cursor:pointer}
+.recap{padding:8px 0 16px}
+.recap h4{margin:16px 0 6px;font-size:1rem}
+.recap ul{margin:0;padding-left:18px}
+.recap li{margin:3px 0}
+.recap .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.recap .stats div{border:var(--trait) solid var(--encre);background:var(--case);padding:10px 6px;text-align:center;display:flex;flex-direction:column}
+.recap .stats b{font-family:var(--f-titre);font-weight:400;font-size:1.5rem}
+.recap .stats span{font-size:.8rem;font-weight:700;color:var(--encre-douce)}
+.charges li{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px}
+.charges li b{flex:1 1 100%}

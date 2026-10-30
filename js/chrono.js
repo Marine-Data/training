@@ -25,32 +25,6 @@ function dureeEx(x) {
   const m = String(x.dose || '').match(/^(?:\d+\s*×\s*)?(\d+)\s*(s|min)\b/i);
   return m ? +m[1] * (m[2].toLowerCase() === 'min' ? 60 : 1) : null;
 }
-// Reps et poids notés pendant la séance : gardés sur ce téléphone, par exercice, pour la prochaine fois.
-const CHARGES_KEY = 'ft_charges';
-const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
-function lireCharges() { try { return JSON.parse(localStorage.getItem(CHARGES_KEY) || '{}'); } catch (e) { return {}; } }
-function garderCharge(it) {
-  const c = lireCharges(), k = cleEx(it.x.nom), v = {};
-  if (it.dose !== (it.x.dose || '')) v.dose = it.dose;
-  if (it.kg) v.kg = it.kg;
-  if (Object.keys(v).length) c[k] = v; else delete c[k];
-  try { localStorage.setItem(CHARGES_KEY, JSON.stringify(c)); } catch (e) {}
-}
-const doseDe = it => it.dose;
-// Séance en cours : gardée sur ce téléphone pour pouvoir quitter et reprendre là où on en était (12 h max).
-const RUN_KEY = 'ft_seance_en_cours';
-function sauverRun() {
-  if (!run) return;
-  try { localStorage.setItem(RUN_KEY, JSON.stringify({id: run.s.id, t: Date.now(), cur: run.cur, items: run.items.map(i => [i.n, i.passe ? 1 : 0, i.dose, i.kg])})); } catch (e) {}
-}
-function oublierRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
-function lireRun(s, L) {
-  try {
-    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
-    if (r && r.id === s.id && Date.now() - r.t < 12 * 3600e3 && r.items.length === L) return r;
-  } catch (e) {}
-  return null;
-}
 const mmss = s => Math.floor(s / 60) + ':' + String(Math.max(0, Math.floor(s % 60))).padStart(2, '0');
 
 async function garderEcranAllume() {
@@ -88,7 +62,7 @@ function majChrono() {
     const reste = Math.max(0, (chrono.fin - Date.now()) / 1000);
     box.className = 'runtimer on' + (reste <= 3 ? ' fin' : '');
     box.innerHTML = `<span class="tlabel">${esc(chrono.label)}</span><span class="tbig">${mmss(Math.ceil(reste))}</span>
-      <button type="button" class="btn small" data-run="stop">Arrêter</button>`;
+      <span class="tbtns"><button type="button" class="btn small" data-run="moins15" aria-label="Enlever 15 secondes">−15 s</button><button type="button" class="btn small" data-run="plus15" aria-label="Ajouter 15 secondes">+15 s</button><button type="button" class="btn small" data-run="stop" aria-label="Arrêter">✕</button></span>`;
     if (reste <= 0) { clearInterval(tick); tick = null; bip(); chrono = null; setTimeout(majChrono, 1500); box.querySelector('.tlabel').textContent = 'C’est reparti !'; }
   } else {
     const ecoule = (Date.now() - chrono.debut) / 1000;
@@ -98,17 +72,95 @@ function majChrono() {
   }
 }
 
-/* Écran de séance : toute la séance reste visible ; l'exercice en cours est mis en avant.
-   On peut le faire (la récup se lance seule), le refaire, le passer, ou toucher n'importe quel autre exercice. */
+
+/* ---------- Outils : doses, reps, poids ---------- */
+// « 4 × 10 » → 4 séries de « 10 » ; « 30 s » → 1 série de « 30 s ».
+function lireDose(dose) {
+  const m = String(dose || '').match(/^\s*(\d+)\s*[×x*]\s*(.+)$/i);
+  return m ? {series: +m[1], reps: m[2].trim()} : {series: 1, reps: String(dose || '').trim()};
+}
+const estTemps = reps => /^\d+\s*(s|min)\b/i.test(reps);
+const nombre = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
+const fmtKg = n => String(Math.round(n * 100) / 100).replace('.', ',');
+const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+const doseTxt = it => (it.series > 1 ? it.series + ' × ' : '') + it.reps;
+const complet = it => it.sets.length >= it.series;
+const traite = it => complet(it) || it.passe;
+const RESSENTIS = [['facile', 'Facile'], ['ok', 'OK'], ['dur', 'Dur'], ['douleur', 'Douleur']];
+
+/* ---------- Historique des charges : sur ce téléphone et dans la base (avec la séance faite) ---------- */
+const HISTO_KEY = 'ft_historique';
+function lireHistoLocal() { try { return JSON.parse(localStorage.getItem(HISTO_KEY) || '{}'); } catch (e) { return {}; } }
+// Toutes les fois où on a fait cet exercice, de la plus récente à la plus ancienne : [{d, s: [[reps, kg]], r}]
+function histoEx(nom) {
+  const k = cleEx(nom), vus = new Set(), out = [];
+  const ajoute = e => { const id = e.d + JSON.stringify(e.s); if (!vus.has(id)) { vus.add(id); out.push(e); } };
+  (lireHistoLocal()[k] || []).forEach(ajoute);
+  (typeof realisations !== 'undefined' ? realisations : []).forEach(r => ((r.details && r.details.exos) || [])
+    .filter(x => cleEx(x.nom) === k).forEach(x => ajoute({d: r.fait_le, s: x.s || [], r: x.r || ''})));
+  return out.sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0);
+}
+const kgMax = e => Math.max(-Infinity, ...e.s.map(([, kg]) => nombre(kg)).filter(n => n !== null));
+function resumeSets(sets) {
+  if (!sets.length) return '';
+  const same = sets.every(([r, k]) => r === sets[0][0] && k === sets[0][1]);
+  const un = ([r, k]) => r + (k ? ' à ' + k + ' kg' : '');
+  return same ? (sets.length > 1 ? sets.length + ' × ' : '') + un(sets[0]) : sets.map(un).join(' · ');
+}
+function ilYa(d) {
+  const j = Math.round((new Date(todayStr() + 'T12:00:00') - new Date(d + 'T12:00:00')) / 864e5);
+  return j <= 0 ? 'aujourd’hui' : j === 1 ? 'hier' : 'il y a ' + j + ' j';
+}
+// Petite courbe du poids max, séance après séance.
+function courbe(h) {
+  const pts = h.slice(0, 8).reverse().map(kgMax).filter(isFinite);
+  if (pts.length < 2) return '';
+  const min = Math.min(...pts), max = Math.max(...pts), W = 84, Ht = 24, dx = W / (pts.length - 1);
+  const y = v => max === min ? Ht / 2 : Ht - 3 - (v - min) / (max - min) * (Ht - 6);
+  const P = pts.map((v, i) => (i * dx).toFixed(1) + ',' + y(v).toFixed(1)).join(' ');
+  return `<svg class="courbe" viewBox="-3 0 ${W + 6} ${Ht}" width="${W + 6}" height="${Ht}" role="img" aria-label="Poids max : ${pts.map(fmtKg).join(', ')} kg">
+    <polyline points="${P}"/><circle cx="${((pts.length - 1) * dx).toFixed(1)}" cy="${y(pts[pts.length - 1]).toFixed(1)}" r="3"/></svg>`;
+}
+// Repère « la dernière fois » + conseil de charge.
+function derniereFoisHtml(it) {
+  const h = histoEx(it.x.nom); if (!h.length) return '';
+  const e = h[0], km = kgMax(e), cible = nombre(it.reps);
+  let conseil = '';
+  if (e.r === 'douleur') conseil = `<span class="alerte">Tu avais signalé une douleur : vas-y doucement.</span>`;
+  else if (isFinite(km) && cible !== null && !estTemps(it.reps) && e.s.length >= it.series && e.r !== 'dur'
+    && e.s.every(([r]) => (nombre(r) ?? 0) >= cible)) {
+    const nv = fmtKg(km + (km < 10 ? 1 : 2.5));
+    if (nombre(it.kg) === null || nombre(it.kg) <= km) conseil = `<button type="button" class="lien" data-run="prendre" data-kg="${nv}">Tout réussi la dernière fois : essayer ${nv} kg ?</button>`;
+  }
+  return `<div class="dfois"><span>Dernière fois (${ilYa(e.d)}) : <b>${esc(resumeSets(e.s))}</b>${e.r ? ' · ' + esc((RESSENTIS.find(r => r[0] === e.r) || [, ''])[1]) : ''}</span>${courbe(h)}${conseil}</div>`;
+}
+
+/* ---------- Séance en cours : gardée sur ce téléphone pour quitter et reprendre (12 h max) ---------- */
+const RUN_KEY = 'ft_seance_en_cours2';
+function sauverRun() {
+  if (!run) return;
+  try { localStorage.setItem(RUN_KEY, JSON.stringify({id: run.s.id, t: Date.now(), cur: run.cur,
+    items: run.items.map(i => ({p: i.passe, n: i.series, r: i.reps, k: i.kg, s: i.sets, f: i.ressenti}))})); } catch (e) {}
+}
+function oublierRun() { try { localStorage.removeItem(RUN_KEY); } catch (e) {} }
+function lireRun(s, L) {
+  try {
+    const r = JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    if (r && r.id === s.id && Date.now() - r.t < 12 * 3600e3 && r.items.length === L) return r;
+  } catch (e) {}
+  return null;
+}
+
+/* ---------- Écran de séance ---------- */
+// Toute la séance reste visible ; l'exercice en cours est mis en avant. On valide série par série.
 function demarrerSeance(s) {
-  const charges = lireCharges();
-  run = {s, cur: 0, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => {
-    const g = charges[cleEx(x.nom)] || {};
-    return {bloc: b.titre, x, n: 0, passe: false, dose: g.dose || x.dose || '', kg: g.kg || ''};
+  run = {s, cur: 0, recap: false, items: (s.blocs || []).flatMap(b => (b.ex || []).map(x => {
+    const d = lireDose(x.dose), h = histoEx(x.nom), km = h.length ? kgMax(h[0]) : -Infinity;
+    return {bloc: b.titre, x, passe: false, series: d.series, reps: d.reps, kg: isFinite(km) ? fmtKg(km) : '', sets: [], ressenti: ''};
   }))};
   const prec = lireRun(s, run.items.length);
-  if (prec && prec.items.some(([n, p]) => n || p)) {
-    prec.items.forEach(([n, p, dose, kg], i) => Object.assign(run.items[i], {n, passe: !!p, dose: dose ?? run.items[i].dose, kg: kg ?? run.items[i].kg}));
+  if (prec && prec.items.some(i => i.p || (i.s || []).length)) {
+    prec.items.forEach((i, k) => Object.assign(run.items[k], {passe: !!i.p, series: i.n || 1, reps: i.r ?? '', kg: i.k ?? '', sets: i.s || [], ressenti: i.f || ''}));
     run.cur = Math.min(prec.cur || 0, run.items.length - 1);
     run.repris = true;
   } else oublierRun();
@@ -118,92 +170,187 @@ function demarrerSeance(s) {
   $('runDlg').showModal();
   garderEcranAllume();
 }
-const traite = it => it.n > 0 || it.passe;
 // Exercice suivant à faire : après celui-ci d'abord, puis ceux restés en arrière.
 function suivant(depuis) {
   const L = run.items.length;
   for (let k = 1; k <= L; k++) { const i = (depuis + k) % L; if (!traite(run.items[i])) return i; }
   return -1;
 }
+function stepper(f, label, val, extra) {
+  return `<div class="stp"><span class="stl">${label}</span><div class="stc">
+    <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="-1" aria-label="${label} moins">−</button>
+    ${f === 'series' ? `<b class="stv">${esc(val)}</b>` : `<input type="text" ${f === 'kg' ? 'inputmode="decimal" placeholder="–"' : ''} data-f="${f}" value="${esc(val)}" aria-label="${label}" autocomplete="off">`}
+    <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="1" aria-label="${label} plus">+</button>${extra || ''}</div></div>`;
+}
+function carteActive(it) {
+  const tps = estTemps(it.reps), d = dureeEx({dose: it.reps}), r = recupDe(it.x);
+  const k = Math.min(it.sets.length + 1, it.series), fini = complet(it);
+  const dots = Array.from({length: it.series}, (_, i) => `<i class="${i < it.sets.length ? 'ok' : i === it.sets.length ? 'now' : ''}"></i>`).join('');
+  const journal = it.sets.length ? `<small class="journal">${it.sets.map(([rp, kg], i) => `S${i + 1} : ${esc(rp)}${kg ? ' × ' + esc(kg) + ' kg' : ''}`).join(' · ')}</small>` : '';
+  const prochain = suivant(run.cur);
+  return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
+    ${journal}
+    <div class="steppers">
+      ${stepper('reps', tps ? 'Durée' : 'Reps', it.reps)}
+      ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
+      ${stepper('series', 'Séries', it.series)}
+    </div>
+    ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
+    ${derniereFoisHtml(it)}
+    ${fini ? `<div class="ressenti"><span>Comment c’était ?</span><div>${RESSENTIS.map(([v, l]) => `<button type="button" class="btn small" data-run="ressenti" data-v="${v}" aria-pressed="${it.ressenti === v}">${l}</button>`).join('')}</div></div>` : ''}
+    <div class="runbtns">
+      ${fini ? `<button type="button" class="btn primary" data-run="suivant">${prochain >= 0 ? 'Exercice suivant →' : 'Voir le récap →'}</button>`
+        : `<button type="button" class="btn primary" data-run="serie">✓ Série ${k} faite</button>`}
+      ${d && !fini ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
+      ${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
+      ${fini ? `<button type="button" class="btn small" data-run="plusserie">＋ Une série de plus</button>` : ''}
+      ${it.sets.length ? `<button type="button" class="btn small" data-run="annulerserie">↶ Annuler la série ${it.sets.length}</button>` : ''}
+      ${it.sets.length || it.passe ? `<button type="button" class="btn small" data-run="annuler">Remettre à faire</button>` : `<button type="button" class="btn small" data-run="passer">↷ Passer</button>`}
+    </div>`;
+}
 function renderRun() {
-  const faits = run.items.filter(i => i.n > 0).length, passes = run.items.filter(i => i.passe).length;
+  const faits = run.items.filter(complet).length, passes = run.items.filter(i => i.passe).length;
+  const avance = run.items.reduce((a, i) => a + (i.passe ? 1 : Math.min(i.sets.length / i.series, 1)), 0);
   $('runProg').textContent = faits + ' / ' + run.items.length + (passes ? ' · ' + passes + ' passé' + (passes > 1 ? 's' : '') : '');
-  $('runBar').style.width = (run.items.length ? (faits + passes) / run.items.length * 100 : 0) + '%';
+  $('runBar').style.width = (run.items.length ? avance / run.items.length * 100 : 0) + '%';
+  $('runClose').textContent = run.recap ? '← Retour' : 'Quitter';
+  $('runFin').textContent = run.recap ? '✓ Enregistrer la séance' : '✓ J’ai fini la séance';
+  $('runFin').classList.toggle('pulse', run.recap || (run.items.every(traite) && faits > 0));
+  if (run.recap) { $('runList').innerHTML = recapHtml(); sauverRun(); return; }
   let bloc = null;
   $('runList').innerHTML = (run.repris ? `<p class="repris">Séance reprise là où tu en étais. <button type="button" class="lien" data-run="zero">Recommencer à zéro</button></p>` : '') + run.items.map((it, i) => {
     const head = it.bloc !== bloc ? `<h3>${esc(bloc = it.bloc || 'Bloc')}</h3>` : '';
-    const d = dureeEx({dose: doseDe(it)}), r = recupDe(it.x), actif = i === run.cur;
-    const etat = it.n > 1 ? '✓ ×' + it.n : it.n ? '✓' : it.passe ? '↷' : '';
-    return head + `<div class="runex${actif ? ' cur' : ''}${it.n ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
+    const actif = i === run.cur;
+    const etat = complet(it) ? '✓' : it.passe ? '↷' : it.sets.length ? it.sets.length + '/' + it.series : '';
+    return head + `<div class="runex${actif ? ' cur' : ''}${complet(it) ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
       <div class="rline"><span class="retat" aria-hidden="true">${etat}</span>
-        <span class="rtxt"><b>${esc(doseDe(it))}</b> ${esc(it.x.nom)}${it.kg ? ` <span class="rkg">· ${esc(it.kg)} kg</span>` : ''}
+        <span class="rtxt"><b>${esc(doseTxt(it))}</b> ${esc(it.x.nom)}<span class="rkg">${it.kg && !estTemps(it.reps) ? ' · ' + esc(it.kg) + ' kg' : ''}</span>
         ${actif && it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${actif && typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></div>
-      ${actif ? `<div class="runedit">
-        <label>Séries × reps<input type="text" data-f="dose" value="${esc(it.dose)}" placeholder="4 × 10" autocomplete="off"></label>
-        ${d ? '' : `<label>Poids<span class="kgbox"><input type="text" inputmode="decimal" data-f="kg" value="${esc(it.kg)}" placeholder="–" autocomplete="off"><span>kg</span></span></label>`}
-        <small class="prevu"${it.dose !== (it.x.dose || '') ? '' : ' hidden'}>Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>
-      </div>
-      <div class="runbtns">
-        ${d ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
-        ${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
-        <button type="button" class="btn primary" data-run="fait">✓ Fait</button>
-        ${it.n ? `<button type="button" class="btn small" data-run="encore">↻ Encore une fois</button>` : ''}
-        ${it.n || it.passe ? `<button type="button" class="btn small" data-run="annuler">Remettre à faire</button>` : `<button type="button" class="btn small" data-run="passer">↷ Passer</button>`}
-      </div>` : ''}
+      ${actif ? carteActive(it) : ''}
     </div>`;
   }).join('');
-  const fini = run.items.every(traite);
-  $('runFin').textContent = fini && faits ? '✓ Séance terminée, je l’enregistre' : '✓ J’ai fini la séance';
-  $('runFin').classList.toggle('pulse', fini && faits > 0);
   sauverRun();
 }
+
+/* ---------- Récap de fin de séance ---------- */
+function bilan() {
+  let series = 0, volume = 0;
+  const records = [], durs = [];
+  run.items.forEach(it => {
+    series += it.sets.length;
+    it.sets.forEach(([r, k]) => { const nr = nombre(r), nk = nombre(k); if (nr !== null && nk !== null && !estTemps(r)) volume += nr * nk; });
+    if (it.sets.length) {
+      const avant = histoEx(it.x.nom).map(kgMax).filter(isFinite), now = kgMax({s: it.sets});
+      if (isFinite(now) && avant.length && now > Math.max(...avant)) records.push([it.x.nom, now, Math.max(...avant)]);
+    }
+    if (it.ressenti === 'dur' || it.ressenti === 'douleur') durs.push(it);
+  });
+  return {series, volume, records, durs};
+}
+function recapHtml() {
+  const b = bilan(), faits = run.items.filter(complet).length, partiels = run.items.filter(i => i.sets.length && !complet(i));
+  const passes = run.items.filter(i => i.passe || (!i.sets.length && !complet(i)));
+  return `<section class="recap"><h3>Récap de la séance</h3>
+    <div class="stats">
+      <div><b>${faits}/${run.items.length}</b><span>exercices</span></div>
+      <div><b>${b.series}</b><span>séries</span></div>
+      <div><b>${b.volume ? fmtKg(Math.round(b.volume)) : '–'}</b><span>kg soulevés</span></div>
+    </div>
+    ${b.records.length ? `<h4>🏆 Nouveaux records</h4><ul>${b.records.map(([n, k, a]) => `<li><b>${esc(n)}</b> : ${fmtKg(k)} kg <small>(avant ${fmtKg(a)})</small></li>`).join('')}</ul>` : ''}
+    ${b.durs.length ? `<h4>À surveiller</h4><ul>${b.durs.map(i => `<li><b>${esc(i.x.nom)}</b> : ${i.ressenti === 'douleur' ? 'douleur' : 'dur'}</li>`).join('')}</ul>` : ''}
+    ${partiels.length ? `<h4>Pas terminés</h4><ul>${partiels.map(i => `<li>${esc(i.x.nom)} <small>(${i.sets.length}/${i.series} séries)</small></li>`).join('')}</ul>` : ''}
+    ${passes.length ? `<h4>Passés ou pas faits</h4><p class="meta">${passes.map(i => esc(i.x.nom)).join(' · ')}</p>` : ''}
+    <p class="meta">Tes charges sont enregistrées avec la séance : tu les retrouveras la prochaine fois, sur n’importe quel téléphone.</p>
+  </section>`;
+}
+function detailsSeance() {
+  return {exos: run.items.filter(i => i.sets.length).map(i => ({nom: i.x.nom.slice(0, 80), s: i.sets.slice(0, 20), r: i.ressenti, c: doseTxt(i).slice(0, 30)}))};
+}
+function garderHistoLocal() {
+  const h = lireHistoLocal(), d = todayStr();
+  run.items.filter(i => i.sets.length).forEach(i => {
+    const k = cleEx(i.x.nom);
+    h[k] = [{d, s: i.sets, r: i.ressenti, n: i.x.nom}, ...(h[k] || []).filter(e => e.d !== d)].slice(0, 15);
+  });
+  try { localStorage.setItem(HISTO_KEY, JSON.stringify(h)); } catch (e) {}
+}
+
+/* ---------- Actions ---------- */
 function allerA(i) {
   run.cur = i; renderRun();
   const el = $('runList').querySelector('.runex.cur');
   if (el) el.scrollIntoView({block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
 }
-// Modifier les reps ou le poids de l'exercice en cours : enregistré tout de suite, sans redessiner l'écran.
-$('runList').addEventListener('input', e => {
-  const f = e.target.dataset.f; if (!f || !run) return;
-  const it = run.items[run.cur];
-  it[f] = f === 'kg' ? e.target.value.replace(/[^\d.,]/g, '').replace('.', ',') : e.target.value;
-  if (f === 'kg' && e.target.value !== it.kg) e.target.value = it.kg;
-  garderCharge(it); sauverRun();
-  const ex = e.target.closest('.runex');
-  ex.querySelector('.rtxt>b').textContent = it.dose;
-  ex.querySelector('.prevu').hidden = it.dose === (it.x.dose || '');
-  let kg = ex.querySelector('.rkg');
-  if (it.kg && !kg) { kg = document.createElement('span'); kg.className = 'rkg'; ex.querySelector('.rtxt>b').after(' ', kg); }
-  if (kg) { kg.textContent = it.kg ? '· ' + it.kg + ' kg' : ''; }
-});
-$('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
+function avancer() { const nx = suivant(run.cur); if (nx >= 0) allerA(nx); else { run.recap = true; renderRun(); $('runDlg').scrollTop = 0; } }
 // Toucher un exercice le met en avant (on fait dans l'ordre qu'on veut).
 $('runList').addEventListener('click', e => {
   if (e.target.closest('button, input, label')) return;
   const el = e.target.closest('[data-sel]'); if (el && +el.dataset.sel !== run.cur) allerA(+el.dataset.sel);
 });
-function action(a) {
+// Saisie au clavier des reps ou du poids : enregistrée tout de suite, sans redessiner l'écran.
+$('runList').addEventListener('input', e => {
+  const f = e.target.dataset.f; if (!f || !run) return;
+  const it = run.items[run.cur];
+  if (f === 'kg') { const v = e.target.value.replace(/[^\d.,]/g, '').replace('.', ','); if (v !== e.target.value) e.target.value = v; it.kg = v; }
+  else it.reps = e.target.value;
+  const ex = e.target.closest('.runex');
+  ex.querySelector('.rtxt>b').textContent = doseTxt(it);
+  ex.querySelector('.rkg').textContent = it.kg && !estTemps(it.reps) ? ' · ' + it.kg + ' kg' : '';
+  sauverRun();
+});
+$('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
+function pas(it, f, d) {
+  if (f === 'series') it.series = Math.max(Math.max(1, it.sets.length), Math.min(20, it.series + d));
+  else if (f === 'kg') {
+    const n = nombre(it.kg);
+    if (n === null) { it.kg = d > 0 ? '5' : ''; return; }
+    const nv = n + d * ((d > 0 ? n < 10 : n <= 10) ? 1 : 2.5);
+    it.kg = nv <= 0 ? '' : fmtKg(nv);
+  }
+  else {
+    const m = String(it.reps).match(/^(\d+)(.*)$/); if (!m) return;
+    const st = estTemps(it.reps) && /s/i.test(m[2]) ? 5 : 1;
+    it.reps = Math.max(st, +m[1] + d * st) + m[2];
+  }
+}
+function action(a, b) {
   const it = run.items[run.cur], r = recupDe(it.x);
-  if (a === 'fait' || a === 'encore') {
-    it.n++; it.passe = false;
-    if (r) lancerChrono('down', r, 'Récup');
-    if (a === 'fait') { const nx = suivant(run.cur); nx >= 0 ? allerA(nx) : renderRun(); } else renderRun();
-  } else if (a === 'passer') { it.passe = true; const nx = suivant(run.cur); nx >= 0 ? allerA(nx) : renderRun(); }
-  else if (a === 'annuler') { it.n = 0; it.passe = false; renderRun(); }
+  if (a === 'serie') {
+    it.sets.push([String(it.reps).trim(), estTemps(it.reps) ? '' : it.kg]); it.passe = false;
+    if (r) lancerChrono('down', r, complet(it) ? 'Récup' : 'Récup · série ' + (it.sets.length + 1));
+    renderRun();
+  } else if (a === 'plusserie') { it.series++; renderRun(); }
+  else if (a === 'annulerserie') { it.sets.pop(); renderRun(); }
+  else if (a === 'ressenti') { it.ressenti = it.ressenti === b.dataset.v ? '' : b.dataset.v; avancer(); }
+  else if (a === 'suivant') avancer();
+  else if (a === 'passer') { it.passe = true; avancer(); }
+  else if (a === 'annuler') { it.sets = []; it.passe = false; it.ressenti = ''; renderRun(); }
+  else if (a === 'pas') { pas(it, b.dataset.f, +b.dataset.d); renderRun(); }
+  else if (a === 'prendre') { it.kg = b.dataset.kg; renderRun(); }
+  else if (a === 'prevu') { const d = lireDose(it.x.dose); it.series = Math.max(d.series, it.sets.length); it.reps = d.reps; renderRun(); }
 }
 $('runDlg').addEventListener('click', e => {
-  const b = e.target.closest('[data-run]'); if (!b) return;
+  const b = e.target.closest('[data-run]'); if (!b || !run) return;
   const a = b.dataset.run;
-  if (['fait', 'encore', 'passer', 'annuler'].includes(a)) { action(a); return; }
-  if (a === 'zero') { run.items.forEach(i => { i.n = 0; i.passe = false; }); run.cur = 0; run.repris = false; renderRun(); $('runList').scrollTop = 0; return; }
-  if (a === 'prevu') { const it = run.items[run.cur]; it.dose = it.x.dose || ''; garderCharge(it); renderRun(); return; }
+  if (a === 'zero') { run.items.forEach(i => { i.sets = []; i.passe = false; i.ressenti = ''; }); run.cur = 0; run.repris = false; renderRun(); return; }
   if (a === 'ex') lancerChrono('down', +b.dataset.s, b.dataset.l);
   else if (a === 'recup') lancerChrono('down', +b.dataset.s, 'Récup');
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');
   else if (a === 'stop') arreterChrono();
+  else if (a === 'plus15' || a === 'moins15') { if (chrono && chrono.mode === 'down') { chrono.fin += (a === 'plus15' ? 15 : -15) * 1000; majChrono(); } }
+  else if (b.closest('#runList')) action(a, b);
 });
-$('runFin').onclick = async () => { if (run && await marquerFaite(run.s)) { oublierRun(); $('runDlg').close(); } };
-$('runClose').onclick = () => { sauverRun(); $('runDlg').close(); };
+$('runFin').onclick = async () => {
+  if (!run) return;
+  if (!run.recap) { run.recap = true; renderRun(); $('runDlg').scrollTop = 0; return; }
+  garderHistoLocal();
+  if (await marquerFaite(run.s, detailsSeance())) { oublierRun(); $('runDlg').close(); }
+};
+$('runClose').onclick = () => {
+  if (run && run.recap) { run.recap = false; renderRun(); return; }
+  sauverRun(); $('runDlg').close();
+};
+$('runDlg').addEventListener('cancel', e => { if (run && run.recap) { e.preventDefault(); run.recap = false; renderRun(); } });
 $('runDlg').addEventListener('close', () => {
   clearInterval(tick); tick = null; chrono = null; run = null;
   try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null;

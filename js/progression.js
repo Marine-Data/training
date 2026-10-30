@@ -17,10 +17,10 @@ async function loadRealisations() {
     realisations = await api('/ft_realisations?select=*&prenom=ilike.' + encodeURIComponent(me.replace(/[*,()]/g, '')) + '&order=fait_le.desc,created_at.desc&limit=300');
   } catch (e) { /* hors ligne : on garde l'historique déjà chargé */ }
 }
-async function marquerFaite(s) {
+async function marquerFaite(s, details) {
   if (!(await ensureName())) return false;
   try {
-    await api('/ft_realisations', {method: 'POST', body: JSON.stringify({seance_id: s.id, sport: s.sport, titre: s.titre.slice(0, 120), prenom: me}), headers: {Prefer: 'return=minimal'}});
+    await api('/ft_realisations', {method: 'POST', body: JSON.stringify({seance_id: s.id, sport: s.sport, titre: s.titre.slice(0, 120), prenom: me, ...(details && details.exos.length ? {details} : {})}), headers: {Prefer: 'return=minimal'}});
     toast('Bravo, c’est noté 💪');
     if (typeof loadDefi === 'function') loadDefi();
     await loadRealisations();
@@ -63,6 +63,7 @@ function progressionHtml() {
     <h3>Ma progression</h3>
     <p class="meta">${mois.length} séance${mois.length > 1 ? 's' : ''} ces 30 derniers jours</p>
     <div class="hex">${hexagoneSvg(counts)}</div>
+    ${chargesHtml()}
     <details class="histo"><summary>Mes dernières séances</summary><ul>${realisations.slice(0, 15).map(r =>
       `<li><span>${esc(dates(r))}</span><b>${esc(r.titre)}</b><button type="button" class="xdel" data-real="${r.id}" aria-label="Retirer de mon historique">✕</button></li>`).join('')}</ul></details>
   </section>`;
@@ -74,4 +75,18 @@ function favorisHtml() {
       <span class="emo" aria-hidden="true">${sportOf(s.sport).emo}</span>
       <span class="dtxt"><b>${esc(s.titre)}</b><small>${esc(s.sport)}${s.duree ? ' · ' + s.duree + ' min' : ''}</small></span>
       <span class="go" aria-hidden="true">→</span></button>`).join('')}</section>`;
+}
+
+/* Mes charges : dernier poids et courbe pour chaque exercice noté en mode séance */
+function chargesHtml() {
+  if (typeof histoEx !== 'function') return '';
+  const noms = new Map();
+  Object.values(lireHistoLocal()).forEach(l => l.forEach(e => { if (e.n && !noms.has(cleEx(e.n))) noms.set(cleEx(e.n), e.n); }));
+  realisations.forEach(r => ((r.details && r.details.exos) || []).forEach(x => { if (!noms.has(cleEx(x.nom))) noms.set(cleEx(x.nom), x.nom); }));
+  const lignes = [...noms.values()].map(n => [n, histoEx(n)]).filter(([, h]) => h.some(e => isFinite(kgMax(e))));
+  if (!lignes.length) return '';
+  return `<details class="histo charges"><summary>Mes charges</summary><ul>${lignes.map(([n, h]) => {
+    const e = h.find(e => isFinite(kgMax(e)));
+    return `<li><b>${esc(n)}</b><span>${fmtKg(kgMax(e))} kg · ${esc(ilYa(e.d))}</span>${courbe(h)}</li>`;
+  }).join('')}</ul></details>`;
 }

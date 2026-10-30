@@ -1,7 +1,7 @@
 // Service worker Freestyle Tricks : notifications push et fonctionnement hors ligne.
 // - Pages, styles, scripts, icônes : servis depuis le cache, mis à jour en arrière-plan.
 // - Données (Supabase) et météo : réseau d'abord, dernière version en cache si pas de réseau.
-const CACHE = 'ft-v5';
+const CACHE = 'ft-v6';
 const BASE = ['./', './index.html', './manifest.webmanifest', './icon-192.png'];
 
 self.addEventListener('install', e => {
