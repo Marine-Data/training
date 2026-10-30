@@ -25,7 +25,7 @@ const SPORTS = {
     'Gainage':      {dose: '3 × 30 s', sugg: ['Planche', 'Planche latérale', 'Hollow hold', 'Dead bug', 'Superman']},
     'Étirements':   ETIR_GENERIQUE}},
   'Street workout': {emo: '🏋️', blocs: {
-    'Échauffement': {dose: '10 rép.', sugg: ['Rotations d’épaules', 'Mobilité des poignets', 'Scapula pull-ups', 'Pompes scapulaires', 'Dead hang', 'Squats lents']},
+    'Échauffement': {dose: '10 rép.', sugg: ['Corde à sauter|5 min', 'Course à pied|10 min', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Rotations de chevilles', 'Ouverture thoracique', 'Chat-vache', 'Scapula pull-ups', 'Pompes scapulaires', 'Dead hang|3 × 20 s']},
     'Force':        {dose: '3 × 6', sugg: ['Tractions', 'Dips', 'Pompes', 'Australian pull-ups', 'Pompes pike', 'Pistol squats']},
     'Skills':       {dose: '5 × 10 s', sugg: ['Handstand', 'L-sit', 'Tuck front lever', 'Back lever', 'Muscle-up', 'Human flag']},
     'Étirements':   {dose: '30 s', sugg: ['Pectoraux au mur', 'Dorsaux à la barre', 'Épaules', 'Avant-bras et poignets', 'Pike stretch', 'Pancake']}}},
@@ -180,7 +180,9 @@ function exRow(x = {}, dose) {
   return r;
 }
 function suggHtml(info) {
-  return info.sugg.length ? info.sugg.map(n => `<button type="button" data-sugg="${esc(n)}">+ ${esc(n)}</button>`).join('') : '';
+  // Une suggestion peut porter sa quantité : « Corde à sauter|5 min ».
+  return info.sugg.map(s => { const [n, d] = s.split('|');
+    return `<button type="button" data-sugg="${esc(n)}"${d ? ` data-dose="${esc(d)}"` : ''}>+ ${esc(n)}${d ? ' · ' + esc(d) : ''}</button>`; }).join('');
 }
 function blocEl(b, sport) {
   const el = document.createElement('fieldset'); el.className = 'blocedit';
@@ -245,7 +247,9 @@ $('seBlocs').addEventListener('click', e => {
   else if (t.matches('[data-sugg]')) {
     const empty = [...box.querySelectorAll('.exrow')].find(r => !r.querySelector('.xn').value.trim());
     const r = empty || box.appendChild(exRow({}, dose));
-    r.querySelector('.xn').value = t.dataset.sugg; r.querySelector('.xd').focus();
+    r.querySelector('.xn').value = t.dataset.sugg;
+    if (t.dataset.dose && !r.querySelector('.xd').value) r.querySelector('.xd').value = t.dataset.dose;
+    r.querySelector('.xd').focus();
   }
   else if (t.matches('.xdel')) { const r = t.closest('.exrow'); if (box.children.length > 1) r.remove(); else r.querySelectorAll('input').forEach(i => i.value = ''); }
   else if (t.matches('.bdel')) { if ($('seBlocs').children.length > 1) bloc.remove(); }
