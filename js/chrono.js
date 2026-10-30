@@ -46,10 +46,10 @@ function bip() {
 }
 
 /* Chrono : compte à rebours (récup, exercice) ou chrono libre */
-function lancerChrono(mode, secondes, label) {
+function lancerChrono(mode, secondes, label, quandFini) {
   try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); audio.resume(); } catch (e) {}
   clearInterval(tick);
-  chrono = mode === 'down' ? {mode, fin: Date.now() + secondes * 1000, total: secondes, label} : {mode, debut: Date.now(), label};
+  chrono = mode === 'down' ? {mode, fin: Date.now() + secondes * 1000, total: secondes, label, quandFini} : {mode, debut: Date.now(), label};
   majChrono();
   tick = setInterval(majChrono, 250);
 }
@@ -63,7 +63,12 @@ function majChrono() {
     box.className = 'runtimer on' + (reste <= 3 ? ' fin' : '');
     box.innerHTML = `<span class="tlabel">${esc(chrono.label)}</span><span class="tbig">${mmss(Math.ceil(reste))}</span>
       <span class="tbtns"><button type="button" class="btn small" data-run="moins15" aria-label="Enlever 15 secondes">−15 s</button><button type="button" class="btn small" data-run="plus15" aria-label="Ajouter 15 secondes">+15 s</button><button type="button" class="btn small" data-run="stop" aria-label="Arrêter">✕</button></span>`;
-    if (reste <= 0) { clearInterval(tick); tick = null; bip(); chrono = null; setTimeout(majChrono, 1500); box.querySelector('.tlabel').textContent = 'C’est reparti !'; }
+    if (reste <= 0) {
+      const cb = chrono.quandFini;
+      clearInterval(tick); tick = null; bip(); chrono = null;
+      if (cb) { cb(); return; }   // fin d'un exercice chronométré : la série est validée et la récup démarre
+      setTimeout(majChrono, 1500); box.querySelector('.tlabel').textContent = 'C’est reparti !';
+    }
   } else {
     const ecoule = (Date.now() - chrono.debut) / 1000;
     box.className = 'runtimer on';
@@ -328,7 +333,10 @@ function action(a, b) {
   const it = run.items[run.cur], r = it.recup;
   if (a === 'serie') {
     it.sets.push([String(it.reps).trim(), estTemps(it.reps) ? '' : it.kg]); it.passe = false;
-    if (r) lancerChrono('down', r, complet(it) ? 'Récup' : 'Récup · série ' + (it.sets.length + 1));
+    if (r) {
+      const nx = complet(it) ? suivant(run.cur) : -1;
+      lancerChrono('down', r, complet(it) ? (nx >= 0 ? 'Récup · ensuite : ' + run.items[nx].x.nom : 'Récup · dernier exercice fait') : 'Récup · série ' + (it.sets.length + 1));
+    }
     renderRun();
   } else if (a === 'plusserie') { it.series++; renderRun(); }
   else if (a === 'annulerserie') { it.sets.pop(); renderRun(); }
@@ -344,7 +352,13 @@ $('runDlg').addEventListener('click', e => {
   const b = e.target.closest('[data-run]'); if (!b || !run) return;
   const a = b.dataset.run;
   if (a === 'zero') { run.items.forEach(i => { i.sets = []; i.passe = false; i.ressenti = ''; }); run.cur = 0; run.repris = false; renderRun(); return; }
-  if (a === 'ex') lancerChrono('down', +b.dataset.s, b.dataset.l);
+  if (a === 'ex') {
+    // Exercice en temps : à la fin du compte à rebours, la série est validée toute seule.
+    const idx = run.cur;
+    lancerChrono('down', +b.dataset.s, b.dataset.l + ' · série ' + (run.items[idx].sets.length + 1), () => {
+      if (run && run.cur === idx && !complet(run.items[idx])) action('serie'); else majChrono();
+    });
+  }
   else if (a === 'recup') lancerChrono('down', +b.dataset.s, 'Récup');
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');
   else if (a === 'stop') arreterChrono();

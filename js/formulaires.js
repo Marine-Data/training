@@ -119,13 +119,18 @@ document.addEventListener('click', e => {
   const c = e.target.closest('[data-sch],[data-sautre]'); if (!c || !c.parentElement.classList.contains('seancechips')) return;
   const sel = c.parentElement.id.replace('Chips', '');
   if (c.dataset.sautre) { $(sel).hidden = false; $(sel).focus(); return; }
-  seanceLiee = c.dataset.sch || null; $(sel).value = seanceLiee || ''; fillSeanceSelect(sel, seanceLiee);
+  seanceLiee = c.dataset.sch || null; $(sel).value = seanceLiee || ''; nommerDepuisSeance(sel); fillSeanceSelect(sel, seanceLiee);
 });
 async function prepSeanceSelect(id) {
   fillSeanceSelect(id, seanceLiee);
   if (!seLoaded) { await loadSeances(); fillSeanceSelect(id, seanceLiee); }
 }
-['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; fillSeanceSelect(id, seanceLiee); }));
+['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; nommerDepuisSeance(id); fillSeanceSelect(id, seanceLiee); }));
+// Séance choisie alors que le nom est vide : l'activité prend le nom de la séance.
+function nommerDepuisSeance(sel) {
+  const champ = sel === 'eSeance' ? 'eTitre' : 'fTitre', s = seances.find(x => x.id === seanceLiee);
+  if (s && !$(champ).value.trim()) $(champ).value = s.titre.slice(0, 120);
+}
 // Le nom ou le lieu change : on remet les séances du bon sport en tête.
 [['fTitre', 'fSeance'], ['fLieu', 'fSeance'], ['eTitre', 'eSeance'], ['eLieu', 'eSeance']].forEach(([c, s]) =>
   $(c).addEventListener('input', () => fillSeanceSelect(s, seanceLiee)));
