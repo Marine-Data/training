@@ -68,7 +68,7 @@ async function loadSeances() {
     const rows = await api('/ft_seances?select=*&order=updated_at.desc');
     seances = rows.filter(s => !pendingSeDel.has(s.id));
     seLoaded = true;
-    await loadRealisations();
+    await Promise.all([loadRealisations(), loadProgrammes()]);
     renderSeances();
   } catch (e) {
     $('seList').innerHTML = '<div class="empty">Impossible de charger les séances. Réessaie dans un instant.</div>';
@@ -110,7 +110,7 @@ function renderSeances() {
   const rank = s => Math.min(99, ...(s.tags || []).map(g => (order.indexOf(g) + 1) || 99));
   list = list.slice().sort((x, y) => rank(x) - rank(y) || x.titre.localeCompare(y.titre, 'fr', {numeric: true}));
   const illus = seTag ? [] : (ILLUSTREES[seFilter] || []);
-  $('seList').innerHTML = illus.map(x => `<a class="disc illus" href="${x.href}">
+  $('seList').innerHTML = (seTag ? '' : programmesHtml(seFilter)) + illus.map(x => `<a class="disc illus" href="${x.href}">
       <span class="emo" aria-hidden="true">${sportOf(seFilter).emo}</span>
       <span class="dtxt"><b>${esc(x.titre)}</b><small>${esc(x.info)}</small><span class="tagline"><i>Illustrée</i></span></span>
       <span class="go" aria-hidden="true">→</span></a>`).join('') +
@@ -221,20 +221,21 @@ async function planSeance(s) {
 }
 
 /* Suppression avec « Annuler » pendant 6 secondes */
-function deleteSeance(id) {
+async function deleteSeance(id) {
   const s = seances.find(x => x.id === id);
   if (!s || !me || norm(me) !== norm(s.auteur)) { toast('Seule la personne qui a créé la séance peut la supprimer.'); return; }
+  if (!(await ensureCode())) return;
   seances = seances.filter(x => x.id !== id); renderSeances();
   const t = setTimeout(async () => {
     pendingSeDel.delete(id);
-    try { await api('/ft_seances?id=eq.' + id, {method: 'DELETE'}); } catch (e) { toast('Suppression impossible, réessaie.'); }
+    await supprimerProtege('ft_supprimer_seance', {p_id: id});
     loadSeances();
   }, 6000);
   pendingSeDel.set(id, t);
   toast('Séance supprimée', {label: 'Annuler', fn: () => { clearTimeout(t); pendingSeDel.delete(id); loadSeances(); }}, 6000);
 }
 window.addEventListener('pagehide', () => {
-  pendingSeDel.forEach((t, id) => { clearTimeout(t); try { fetch(SB + '/ft_seances?id=eq.' + id, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
+  pendingSeDel.forEach((t, id) => { clearTimeout(t); supprimerAuDepart('ft_supprimer_seance', {p_id: id}); });
   pendingSeDel.clear();
 });
 

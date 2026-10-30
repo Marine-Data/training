@@ -275,3 +275,55 @@ dialog.run .actions{position:sticky;bottom:0;background:var(--papier);border-top
 .serie{font-size:.78rem;font-weight:800;border:var(--trait-fin) solid var(--encre);padding:1px 7px;background:var(--papier)}
 .meteo{display:inline-block;margin-top:6px;font-size:.88rem;font-weight:700;border:var(--trait-fin) dashed var(--encre);padding:2px 8px;background:var(--papier)}
 #repeatOpts select{font:inherit;width:100%;padding:10px 12px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}
+.codein{font-family:var(--f-titre);font-size:2rem;letter-spacing:.5em;text-align:center;max-width:9em}
+
+/* Lieux */
+.lieuact{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px}
+.lien{font:inherit;font-size:.85rem;font-weight:700;color:var(--electrique-txt);background:none;border:0;text-decoration:underline;cursor:pointer;padding:6px 0}
+.sugg button[aria-pressed="true"]{background:var(--encre);color:var(--papier)}
+.lieuinfo{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin-top:2px}
+.lieuinfo small{color:var(--encre-douce);font-size:.82rem}
+.lieuinfo a{font-size:.85rem;font-weight:800;color:var(--electrique-txt)}
+.meteo small{font-weight:500;color:var(--encre-douce)}
+.lieuxlist{list-style:none;margin:10px 0 0;padding:0;border:var(--trait) solid var(--encre);background:var(--case)}
+.lieuxlist li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--trame)}
+.lieuxlist li:first-child{border-top:0}
+.lieuxlist li span{flex:1;min-width:0}
+.lieuxlist small{display:block;color:var(--encre-douce);font-size:.82rem}
+
+/* Places limitées */
+.places{font-size:.8rem;font-weight:800;border:var(--trait-fin) solid var(--encre);padding:2px 8px;background:var(--papier)}
+.places.full{background:var(--encre);color:var(--papier)}
+.attente{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;margin-top:4px}
+.attente b{font-size:.8rem;color:var(--encre-douce);margin-right:2px}
+.attente .chip{border-style:dashed}
+
+/* Défi du mois */
+.defi{border:var(--trait) solid var(--encre);background:var(--case);padding:12px 14px;margin:14px 0 4px;display:flex;flex-direction:column;gap:6px;box-shadow:var(--decal) var(--decal) 0 var(--foret)}
+.defi.vide{background-color:var(--case);box-shadow:none;border-style:dashed}
+.defi.vide span{color:var(--encre-douce);font-size:.9rem}
+.defi.vide .btn{align-self:flex-start}
+.dhead{display:flex;justify-content:space-between;align-items:center}
+.dnum{font-weight:700}
+.dnum .big{font-family:var(--f-titre);font-size:1.8rem}
+.jauge{height:16px;border:var(--trait-fin) solid var(--encre);background:var(--papier)}
+.jauge i{display:block;height:100%;background:var(--foret);transition:width .4s}
+.defi small{color:var(--encre-douce);font-size:.85rem}
+.defi.gagne{box-shadow:var(--decal) var(--decal) 0 var(--electrique)}
+
+/* Programmes */
+.progs{display:flex;flex-direction:column;gap:0;margin-bottom:6px}
+.progs .lien{align-self:flex-start;margin-top:8px}
+.disc.prog{border-color:var(--foret);box-shadow:var(--decal) var(--decal) 0 var(--foret)}
+.semaine{border:var(--trait) solid var(--encre);background:var(--case);padding:10px 12px;margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.semaine h3{font-size:1rem;display:flex;align-items:center;gap:8px}
+.semaine h3 span{font-family:var(--f-texte);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--electrique);color:var(--sur-accent);padding:1px 6px}
+.semaine.courante{box-shadow:var(--decal) var(--decal) 0 var(--electrique)}
+.pse{font:inherit;text-align:left;font-weight:700;border:var(--trait-fin) solid var(--encre);background:var(--papier);color:var(--encre);padding:8px 10px;cursor:pointer}
+.pse.fait{background:var(--foret);color:var(--sur-accent);border-color:var(--foret)}
+.wses{display:flex;flex-wrap:wrap;gap:6px}
+.wchip{display:inline-flex;align-items:center;gap:4px;font-size:.85rem;font-weight:700;border:var(--trait-fin) solid var(--encre);background:var(--papier);padding:3px 4px 3px 8px}
+.wchip button{font:inherit;background:none;border:0;cursor:pointer;color:var(--encre-douce);padding:0 4px}
+.semedit select{font:inherit;width:100%;padding:9px 10px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}
+.snum{font-family:var(--f-titre);font-weight:400;flex:1}
+.horsligne{border:var(--trait) solid var(--encre);background:var(--encre);color:var(--papier);font-weight:700;font-size:.88rem;padding:8px 12px;margin-bottom:12px}

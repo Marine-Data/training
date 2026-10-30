@@ -15,6 +15,9 @@ js/config.js            Adresse de la base Supabase et clés publiques
 js/utils.js             Outils partagés (dates, échappement HTML, messages)
 js/api.js               Requêtes vers la base
 js/meteo.js             Météo des activités en extérieur (Open-Meteo, Paris)
+js/code.js              Code à 4 chiffres et suppressions protégées
+js/lieux.js             Lieux enregistrés (adresse, itinéraire, coordonnées pour la météo)
+js/defi.js              Défi de groupe du mois
 js/planning.js          Affichage du planning, inscriptions, votes, suppression
 js/partage.js           Refaire une activité, partage WhatsApp, ajout à l'agenda
 js/formulaires.js       Proposer et modifier une activité
@@ -22,6 +25,7 @@ js/lexique.js           Explication courte et vidéo YouTube de chaque exercice 
 js/allures.js           Calculateur d'allures à partir de la VMA (running)
 js/progression.js       Favoris, séances faites et hexagone de progression
 js/chrono.js            Mode séance : exercices à cocher, chronos de récup, écran allumé
+js/programmes.js        Programmes sur plusieurs semaines
 js/seances.js           Séances du groupe : créer, modifier, dupliquer, partager, supprimer, proposer au planning
 js/notifications.js     Installation de l'appli et notifications push
 js/main.js              Démarrage et rafraîchissement automatique
@@ -87,3 +91,12 @@ Les navigateurs gardent en mémoire les fichiers CSS et JS. Après chaque change
 
 - **Toutes les semaines** : à la création, on choisit 4 à 16 semaines. Chaque date est une activité à part (inscriptions séparées), reliée aux autres par `serie_id`. Une seule notification est envoyée pour toute la série. L'organisateur peut annuler une date ou toutes les suivantes.
 - **Météo** (`js/meteo.js`) : prévisions Open-Meteo pour Paris, à l'heure de l'activité (ou sur la journée sans heure), jusqu'à 16 jours. Pas de météo pour les activités en intérieur, repérées par des mots comme piscine, salle, escalade, yoga.
+
+## Lieux, programmes, défi, places, code, hors ligne
+
+- **Lieux** (`ft_lieux`) : on tape une adresse dans « Où ? » puis « Enregistrer ce lieu ». L'adresse est cherchée avec la Géoplateforme (IGN), puis l'API Adresse, puis Open-Meteo pour les villes. Une activité liée à un lieu affiche l'adresse, l'itinéraire et la météo de ce lieu.
+- **Programmes** (`ft_programmes`) : dans la vue d'un sport. Chaque semaine liste des séances de ce sport. La date de début est gardée sur le téléphone ; la semaine en cours est mise en avant et les séances faites depuis le début sont cochées.
+- **Défi du mois** (`ft_defis`, fonction `ft_defi_stats`) : objectif collectif, compte toutes les séances faites du mois.
+- **Places** (`places` sur `ft_activites`) : les premiers inscrits ont une place, les suivants sont en liste d'attente, dans l'ordre d'inscription.
+- **Code à 4 chiffres** (`ft_personnes`, code haché) : demandé la première fois qu'on supprime. Les suppressions passent par les fonctions `ft_supprimer_*`, qui vérifient le code (blocage 15 min après 8 erreurs). Le script `sql/protection-suppressions.sql` installe ces fonctions et retire la suppression directe. Tant qu'il n'est pas exécuté, l'appli supprime comme avant.
+- **Hors ligne** (`sw.js`) : l'appli et les dernières données sont gardées en cache. Hors ligne, les inscriptions, votes et séances faites attendent dans une file et partent au retour du réseau.

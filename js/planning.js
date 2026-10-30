@@ -1,40 +1,42 @@
 // Planning : chargement, affichage des cartes, inscriptions, votes et suppression.
-/* Suppression avec « Annuler » pendant 6 secondes */
-const pendingDel = new Map();
-function scheduleDelete(id) {
+/* Suppression avec « Annuler » pendant 6 secondes, vérifiée par le code de l'organisateur (voir code.js) */
+const pendingDel = new Map();     // id → délai (null pour les dates d'une série en cours d'annulation)
+const pendingSeries = new Map();  // clé → {t, args}
+async function scheduleDelete(id) {
   const a = activities.find(x => x.id === id); if (!a) return;
   if (!me || norm(me) !== norm(a.organisateur)) { toast('Seule la personne qui a proposé l’activité peut la supprimer.'); return; }
+  if (!(await ensureCode())) return;
   activities = activities.filter(x => x.id !== id); render();
   const t = setTimeout(async () => {
     pendingDel.delete(id);
-    try { await api('/ft_activites?id=eq.' + id, {method: 'DELETE'}); } catch (e) { toast('Suppression impossible, réessaie.'); }
+    await supprimerProtege('ft_supprimer_activite', {p_id: id});
     load();
   }, 6000);
   pendingDel.set(id, t);
   toast('Activité supprimée', {label: 'Annuler', fn: () => { clearTimeout(t); pendingDel.delete(id); load(); }}, 6000);
 }
 // Annuler une date et toutes les suivantes d'une série
-const pendingSeries = new Map();
-function scheduleDeleteSerie(id) {
+async function scheduleDeleteSerie(id) {
   const a = activities.find(x => x.id === id); if (!a || !a.serie_id) return;
   if (!me || norm(me) !== norm(a.organisateur)) { toast('Seule la personne qui a proposé l’activité peut l’annuler.'); return; }
+  if (!(await ensureCode())) return;
   const ids = activities.filter(x => x.serie_id === a.serie_id && x.date >= a.date).map(x => x.id);
   ids.forEach(i => pendingDel.set(i, null));
   activities = activities.filter(x => !ids.includes(x.id)); render();
-  const filtre = '/ft_activites?serie_id=eq.' + a.serie_id + '&date=gte.' + a.date;
+  const cle = a.serie_id + '|' + a.date, args = {p_serie: a.serie_id, p_date: a.date};
   const t = setTimeout(async () => {
-    ids.forEach(i => pendingDel.delete(i)); pendingSeries.delete(filtre);
-    try { await api(filtre, {method: 'DELETE'}); } catch (e) { toast('Suppression impossible, réessaie.'); }
+    ids.forEach(i => pendingDel.delete(i)); pendingSeries.delete(cle);
+    await supprimerProtege('ft_supprimer_serie', args);
     load();
   }, 6000);
-  pendingSeries.set(filtre, t);
-  toast(ids.length + ' date' + (ids.length > 1 ? 's annulées' : ' annulée'), {label: 'Annuler', fn: () => { clearTimeout(t); pendingSeries.delete(filtre); ids.forEach(i => pendingDel.delete(i)); load(); }}, 6000);
+  pendingSeries.set(cle, {t, args});
+  toast(ids.length + ' date' + (ids.length > 1 ? 's annulées' : ' annulée'), {label: 'Annuler', fn: () => { clearTimeout(t); pendingSeries.delete(cle); ids.forEach(i => pendingDel.delete(i)); load(); }}, 6000);
 }
 // Si on ferme la page pendant les 6 secondes, la suppression est quand même envoyée.
 window.addEventListener('pagehide', () => {
-  pendingDel.forEach((t, id) => { if (t) clearTimeout(t); else return; try { fetch(SB + '/ft_activites?id=eq.' + id, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
+  pendingDel.forEach((t, id) => { if (!t) return; clearTimeout(t); supprimerAuDepart('ft_supprimer_activite', {p_id: id}); });
   pendingDel.clear();
-  pendingSeries.forEach((t, f) => { clearTimeout(t); try { fetch(SB + f, {method: 'DELETE', headers: H, keepalive: true}); } catch (e) {} });
+  pendingSeries.forEach(({t, args}) => { clearTimeout(t); supprimerAuDepart('ft_supprimer_serie', args); });
   pendingSeries.clear();
 });
 
@@ -43,6 +45,7 @@ async function load() {
     const rows = await api('/ft_activites?select=*,ft_inscriptions(id,prenom,created_at),ft_creneaux(id,date,heure,ft_votes(id,prenom))&order=date.asc.nullslast,heure.asc.nullslast');
     activities = rows.filter(a => !pendingDel.has(a.id));
     render();
+    chargerMeteo();
   } catch (e) {
     $('list').innerHTML = '<div class="empty">Impossible de charger le planning. Réessaie dans un instant.</div>';
   }
@@ -83,20 +86,28 @@ const serieHtml = a => a.serie_id && a.date ? `<span class="serie">🔁 Chaque $
 function card(a) {
   const ins = (a.ft_inscriptions || []).slice().sort((x, y) => x.created_at.localeCompare(y.created_at));
   const mine = me && ins.find(i => norm(i.prenom) === norm(me));
-  const people = ins.length
-    ? ins.map(i => `<span class="chip ${me && norm(i.prenom) === norm(me) ? 'me' : ''}">${esc(i.prenom)}</span>`).join('')
-    : '<span class="none">Personne pour l’instant, sois le premier·ère !</span>';
+  // Places limitées : les premiers inscrits ont une place, les suivants sont en liste d'attente, dans l'ordre.
+  const inscrits = a.places ? ins.slice(0, a.places) : ins, attente = a.places ? ins.slice(a.places) : [];
+  const complet = a.places && ins.length >= a.places;
+  const rang = mine ? attente.indexOf(mine) + 1 : 0;
+  const chip = i => `<span class="chip ${me && norm(i.prenom) === norm(me) ? 'me' : ''}">${esc(i.prenom)}</span>`;
+  const people = (a.places ? `<span class="places${complet ? ' full' : ''}">${Math.min(ins.length, a.places)} / ${a.places} places</span>` : '') +
+    (inscrits.length ? inscrits.map(chip).join('') : '<span class="none">Personne pour l’instant, sois le premier·ère !</span>') +
+    (attente.length ? `<div class="attente"><b>Liste d’attente</b>${attente.map(chip).join('')}</div>` : '');
+  const joinLabel = mine ? (rang ? 'Quitter la liste d’attente' : 'Je ne viens plus') : (complet ? '⏳ Liste d’attente' : '✋ Je viens');
   const lieu = lieuHtml(a);
   return `<article class="card ${mine ? 'me' : ''}">
     <div class="when">${timeHtml(a)}${serieHtml(a)}</div>
     ${titreHtml(a)}
     ${lieu}
+    ${lieuInfoHtml(a)}
     <div class="meta">Proposé par ${esc(a.organisateur)}</div>
     ${meteoHtml(a)}
     ${descHtml(a)}
     <div class="people">${people}</div>
+    ${rang ? `<p class="hint">Tu es n° ${rang} sur la liste d’attente : tu passeras inscrit·e dès qu’une place se libère.</p>` : ''}
     <div class="row">
-      <button class="btn small ${mine ? '' : 'in'}" data-act="${mine ? 'leave' : 'join'}" data-id="${a.id}">${mine ? 'Je ne viens plus' : '✋ Je viens'}</button>
+      <button class="btn small ${mine ? '' : 'in'}" data-act="${mine ? 'leave' : 'join'}" data-id="${a.id}">${joinLabel}</button>
       ${seanceBtn(a)}
     </div>
     ${moreMenu(a, false)}
@@ -188,8 +199,10 @@ $('list').addEventListener('click', async e => {
   b.disabled = true;
   try {
     if (act === 'join') {
+      const act = activities.find(x => x.id === id);
+      const plein = act && act.places && (act.ft_inscriptions || []).length >= act.places;
       await api('/ft_inscriptions', {method: 'POST', body: JSON.stringify({activite_id: id, prenom: me}), headers: {Prefer: 'return=minimal'}});
-      toast('C’est noté, à bientôt ! 🎉');
+      toast(plein ? 'Tu es sur la liste d’attente ⏳' : 'C’est noté, à bientôt ! 🎉');
     } else if (act === 'leave') {
       const a = activities.find(x => x.id === id);
       const i = a.ft_inscriptions.find(x => norm(x.prenom) === norm(me));

@@ -16,13 +16,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/charte.css?v=20261030e">
-<link rel="stylesheet" href="css/style.css?v=20261030e">
+<link rel="stylesheet" href="css/charte.css?v=20261030f">
+<link rel="stylesheet" href="css/style.css?v=20261030f">
 </head>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="pinceau" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4" xChannelSelector="R" yChannelSelector="G"/></filter></svg>
 <main>
+  <div id="horsligne" class="horsligne" hidden>📶 Hors ligne : tu vois la dernière version enregistrée. Tes inscriptions et séances faites partiront au retour du réseau.</div>
   <header>
     <div class="kanji" aria-hidden="true">練</div>
     <h1>Freestyle <span>Tricks</span></h1>
@@ -37,6 +38,7 @@
 
   <div id="viewPlanning" role="tabpanel" aria-labelledby="tabPlanning">
     <div id="appbar"></div>
+    <div id="defi"></div>
     <button class="btn primary big" id="addBtn">+ Proposer une activité</button>
     <div id="list" aria-live="polite"></div>
   </div>
@@ -50,6 +52,69 @@
 
   </div>
 </main>
+
+<!-- Code à 4 chiffres -->
+<dialog id="codeDlg">
+  <form id="codeForm" novalidate>
+    <h2 id="codeTitre">Ton code</h2>
+    <p class="meta" id="codeAide"></p>
+    <label for="codeInput">Code à 4 chiffres</label>
+    <input id="codeInput" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="one-time-code" class="codein">
+    <p class="err" id="codeErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="codeCancel">Annuler</button>
+      <button class="btn primary" type="submit">Valider</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Lieux du groupe -->
+<dialog id="lieuxDlg">
+  <h2>Lieux du groupe</h2>
+  <p class="meta">Pour en ajouter un : tape son adresse dans « Où ? » puis « 📍 Enregistrer ce lieu ».</p>
+  <ul class="lieuxlist" id="lieuxList"></ul>
+  <div class="actions"><button class="btn primary" type="button" id="lieuxClose">Fermer</button></div>
+</dialog>
+
+<!-- Objectif du défi -->
+<dialog id="defiDlg">
+  <form id="defiForm" novalidate>
+    <h2>Défi du mois</h2>
+    <p class="meta">Combien de séances voulez-vous faire tous ensemble ce mois-ci ? Chaque « ✓ Je l’ai faite » compte.</p>
+    <label for="defiN">Objectif (séances)</label>
+    <input id="defiN" type="number" inputmode="numeric" min="1" max="10000">
+    <p class="err" id="defiErr" role="alert"></p>
+    <div class="actions"><button class="btn" type="button" id="defiCancel">Annuler</button><button class="btn primary" type="submit">Valider</button></div>
+  </form>
+</dialog>
+
+<!-- Programme -->
+<dialog id="prDlg">
+  <div id="prView"></div>
+  <div class="seactions">
+    <button class="btn primary full" type="button" id="prStart">▶ Commencer cette semaine</button>
+    <button class="btn small" type="button" id="prEdit">✎ Modifier</button>
+    <button class="btn small danger" type="button" id="prDel">🗑 Supprimer</button>
+  </div>
+  <p style="text-align:center;margin-top:12px"><button class="btn small" type="button" id="prClose">Fermer</button></p>
+</dialog>
+
+<!-- Créer ou modifier un programme -->
+<dialog id="prEditDlg">
+  <form id="prForm" novalidate>
+    <h2 id="prEditTitle">Créer un programme</h2>
+    <label for="prTitre">Nom du programme</label>
+    <input id="prTitre" maxlength="120" placeholder="Ex : Préparer un 10 km en 8 semaines">
+    <label for="prObj">Objectif et conseils (optionnel)</label>
+    <textarea id="prObj" maxlength="600" placeholder="Pour qui, à quel rythme, quoi faire à côté…"></textarea>
+    <h3 class="blocs-t">Semaines</h3>
+    <p class="hint">Pour chaque semaine, choisis une ou plusieurs séances de ce sport.</p>
+    <div id="prWeeks"></div>
+    <button class="btn small" type="button" id="prAddWeek">+ Ajouter une semaine</button>
+    <p class="err" id="prErr" role="alert"></p>
+    <div class="actions"><button class="btn" type="button" id="prCancel">Annuler</button><button class="btn primary" type="submit">Enregistrer</button></div>
+  </form>
+</dialog>
 
 <!-- Prénom -->
 <dialog id="nameDlg">
@@ -93,6 +158,11 @@
     </div>
     <label for="fLieu">Où ?</label>
     <input id="fLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
+    <div class="sugg" id="lieuxSugg"></div>
+    <div class="lieuact"><button class="btn small" type="button" id="lieuSave" hidden>📍 Enregistrer ce lieu</button><button class="lien gererlieux" type="button">Gérer les lieux</button></div>
+    <label for="fPlaces">Places (optionnel)</label>
+    <input id="fPlaces" type="number" inputmode="numeric" min="1" max="200" placeholder="Illimité">
+    <p class="hint">Au-delà, les inscrits passent en liste d’attente et montent dès qu’une place se libère.</p>
     <label for="fDesc">Détails (optionnel)</label>
     <textarea id="fDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
     <p class="err" id="addErr" role="alert"></p>
@@ -205,6 +275,10 @@
     </div>
     <label for="eLieu">Lieu</label>
     <input id="eLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
+    <div class="sugg" id="eLieuxSugg"></div>
+    <div class="lieuact"><button class="btn small" type="button" id="eLieuSave" hidden>📍 Enregistrer ce lieu</button><button class="lien gererlieux" type="button">Gérer les lieux</button></div>
+    <label for="ePlaces">Places (optionnel)</label>
+    <input id="ePlaces" type="number" inputmode="numeric" min="1" max="200" placeholder="Illimité">
     <label for="eDesc">Détails</label>
     <textarea id="eDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
     <p class="err" id="eErr" role="alert"></p>
@@ -217,19 +291,23 @@
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="js/config.js?v=20261030e"></script>
-<script src="js/utils.js?v=20261030e"></script>
-<script src="js/api.js?v=20261030e"></script>
-<script src="js/meteo.js?v=20261030e"></script>
-<script src="js/planning.js?v=20261030e"></script>
-<script src="js/partage.js?v=20261030e"></script>
-<script src="js/formulaires.js?v=20261030e"></script>
-<script src="js/notifications.js?v=20261030e"></script>
-<script src="js/lexique.js?v=20261030e"></script>
-<script src="js/allures.js?v=20261030e"></script>
-<script src="js/progression.js?v=20261030e"></script>
-<script src="js/seances.js?v=20261030e"></script>
-<script src="js/chrono.js?v=20261030e"></script>
-<script src="js/main.js?v=20261030e"></script>
+<script src="js/config.js?v=20261030f"></script>
+<script src="js/utils.js?v=20261030f"></script>
+<script src="js/api.js?v=20261030f"></script>
+<script src="js/meteo.js?v=20261030f"></script>
+<script src="js/lieux.js?v=20261030f"></script>
+<script src="js/code.js?v=20261030f"></script>
+<script src="js/planning.js?v=20261030f"></script>
+<script src="js/partage.js?v=20261030f"></script>
+<script src="js/formulaires.js?v=20261030f"></script>
+<script src="js/notifications.js?v=20261030f"></script>
+<script src="js/lexique.js?v=20261030f"></script>
+<script src="js/allures.js?v=20261030f"></script>
+<script src="js/progression.js?v=20261030f"></script>
+<script src="js/seances.js?v=20261030f"></script>
+<script src="js/programmes.js?v=20261030f"></script>
+<script src="js/chrono.js?v=20261030f"></script>
+<script src="js/defi.js?v=20261030f"></script>
+<script src="js/main.js?v=20261030f"></script>
 </body>
 </html>

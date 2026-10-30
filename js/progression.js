@@ -15,13 +15,14 @@ async function loadRealisations() {
   if (!me) { realisations = []; return; }
   try {
     realisations = await api('/ft_realisations?select=*&prenom=ilike.' + encodeURIComponent(me.replace(/[*,()]/g, '')) + '&order=fait_le.desc,created_at.desc&limit=300');
-  } catch (e) { realisations = []; }
+  } catch (e) { /* hors ligne : on garde l'historique déjà chargé */ }
 }
 async function marquerFaite(s) {
   if (!(await ensureName())) return false;
   try {
     await api('/ft_realisations', {method: 'POST', body: JSON.stringify({seance_id: s.id, sport: s.sport, titre: s.titre.slice(0, 120), prenom: me}), headers: {Prefer: 'return=minimal'}});
     toast('Bravo, c’est noté 💪');
+    if (typeof loadDefi === 'function') loadDefi();
     await loadRealisations();
     if (seFilter === 'Tous') renderSeances();
     return true;

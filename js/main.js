@@ -11,6 +11,9 @@ document.querySelector('.mtabs').addEventListener('click', e => { const b = e.ta
 if (location.hash === '#seances') setView('seances');
 
 load();
-chargerMeteo();
+loadLieux().then(() => { render(); chargerMeteo(); });
+loadDefi();
+majHorsLigne();
+viderFileAttente();
 setInterval(() => { if (!document.hidden && !document.querySelector('dialog[open]')) load(); }, 20000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { load(); chargerMeteo(); } });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });

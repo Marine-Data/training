@@ -9,6 +9,8 @@ function openEdit(id, focus) {
   $('eMulti').checked = false; $('eSlots').hidden = true; $('eSlotRows').innerHTML = ''; $('eMultiWrap').hidden = poll;
   $('eDate').required = !poll; $('eDate').min = todayStr();
   $('eDate').value = a.date || ''; $('eHeure').value = a.heure ? a.heure.slice(0, 5) : '';
+  lieuChoisi = a.lieu_id || null; renderLieuxSugg();
+  $('ePlaces').value = a.places || '';
   $('eLieu').value = a.lieu || ''; $('eTitre').value = a.titre; $('eDesc').value = a.description || ''; $('eErr').textContent = '';
   $('eDel').hidden = !(me && norm(a.organisateur) === norm(me));
   $('editDlg').showModal();
@@ -32,7 +34,8 @@ $('eAddSlot').onclick = () => addSlotRow('', '', $('eSlotRows'));
 $('editForm').onsubmit = async e => {
   e.preventDefault();
   const a = editing, poll = a.statut === 'sondage', multi = $('eMulti').checked;
-  const body = {titre: $('eTitre').value.trim(), lieu: $('eLieu').value.trim() || null, description: $('eDesc').value.trim() || null};
+  const pl = parseInt($('ePlaces').value, 10);
+  const body = {titre: $('eTitre').value.trim(), lieu: $('eLieu').value.trim() || null, lieu_id: lieuChoisi, places: pl > 0 && pl <= 200 ? pl : null, description: $('eDesc').value.trim() || null};
   if (!poll && !multi) { body.date = $('eDate').value; body.heure = $('eHeure').value || null; }
   let slots = [];
   if (multi) {
@@ -93,7 +96,7 @@ $('fRepeat').onchange = e => { $('repeatOpts').hidden = !e.target.checked; };
 $('addBtn').onclick = async () => {
   if (!(await ensureName())) return;
   slotPrefill = null; pendingEnd = null; seanceLiee = null; $('addTitle').textContent = 'Proposer une activité';
-  $('addForm').reset(); $('repeatOpts').hidden = true; $('slotRows').innerHTML = ''; setMulti(false);
+  $('addForm').reset(); $('repeatOpts').hidden = true; lieuChoisi = null; renderLieuxSugg(); $('slotRows').innerHTML = ''; setMulti(false);
   $('fDate').min = todayStr(); $('fDate').value = todayStr(); $('addErr').textContent = '';
   $('addDlg').showModal();
 };
@@ -116,7 +119,8 @@ $('addForm').onsubmit = async e => {
     duree_fin: multi ? null : pendingEnd,
     statut: multi ? 'sondage' : 'fixe',
     lieu: $('fLieu').value.trim() || null, description: $('fDesc').value.trim() || null, organisateur: me,
-    seance_id: seanceLiee
+    seance_id: seanceLiee, lieu_id: lieuChoisi,
+    places: (p => p > 0 && p <= 200 ? p : null)(parseInt($('fPlaces').value, 10))
   };
   try {
     // Activité récurrente : une activité par semaine, reliées par le même serie_id.
