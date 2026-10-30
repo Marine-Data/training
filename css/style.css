@@ -187,3 +187,8 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .blocedit .sugg{margin-top:0}
 .blocedit .sugg button{font-size:.78rem;padding:3px 8px}
 .blocedit .addex{align-self:flex-start}
+/* Explications des exercices */
+.lex{display:block;color:var(--encre-douce);font-size:.84rem;line-height:1.4;margin-top:3px}
+.lex a{color:var(--electrique-txt);font-weight:800;white-space:nowrap}
+.xhelp{grid-column:1/-1;margin:0}
+.xhelp:empty{display:none}

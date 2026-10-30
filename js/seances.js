@@ -94,6 +94,13 @@ function renderSeances() {
 $('seFilters').addEventListener('click', e => { const b = e.target.closest('[data-sport]'); if (b) { seFilter = b.dataset.sport; renderSeances(); } });
 $('seList').addEventListener('click', e => { const b = e.target.closest('[data-id]'); if (b) openSeance(b.dataset.id); });
 
+/* Explication et vidéo des exercices techniques (voir lexique.js) */
+function lexHtml(nom) {
+  const l = lexique(nom); if (!l) return '';
+  return `<small class="lex">${esc(l.texte)} <a href="${l.video}" target="_blank" rel="noopener">▶ Voir une vidéo</a></small>`;
+}
+function majAide(row) { row.querySelector('.xhelp').innerHTML = lexHtml(row.querySelector('.xn').value); }
+
 /* Fiche d'une séance */
 const linkify = s => esc(s).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">lien ↗</a>');
 let viewing = null;
@@ -108,7 +115,7 @@ function openSeance(id) {
     ${s.description ? `<p class="desc">${linkify(s.description)}</p>` : ''}
     ${(s.blocs || []).filter(b => (b.ex || []).length).map(b => `
       <section class="sebloc"><h3>${esc(b.titre || 'Bloc')}</h3><ol>${b.ex.map(x => `
-        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}</span></li>`).join('')}</ol></section>`).join('')}`;
+        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}${lexHtml(x.nom)}</span></li>`).join('')}</ol></section>`).join('')}`;
   $('seViewDlg').showModal();
   try { history.replaceState(null, '', '#seance-' + s.id); } catch (e) {}
 }
@@ -177,7 +184,9 @@ function exRow(x = {}, dose) {
   r.innerHTML = `<input class="xd" maxlength="40" placeholder="${esc(dose)}" aria-label="Quantité" value="${esc(x.dose || '')}">
     <input class="xn" maxlength="80" placeholder="Exercice" aria-label="Exercice" value="${esc(x.nom || '')}">
     <button type="button" class="xdel" aria-label="Retirer cet exercice">✕</button>
-    <input class="xo" maxlength="200" placeholder="Consigne ou lien (optionnel)" aria-label="Consigne" value="${esc(x.note || '')}">`;
+    <input class="xo" maxlength="200" placeholder="Consigne ou lien (optionnel)" aria-label="Consigne" value="${esc(x.note || '')}">
+    <p class="xhelp"></p>`;
+  majAide(r);
   return r;
 }
 function suggHtml(info) {
@@ -250,14 +259,17 @@ $('seBlocs').addEventListener('click', e => {
   else if (t.matches('[data-sugg]')) {
     const empty = [...box.querySelectorAll('.exrow')].find(r => !r.querySelector('.xn').value.trim());
     const r = empty || box.appendChild(exRow({}, dose));
-    r.querySelector('.xn').value = t.dataset.sugg;
+    r.querySelector('.xn').value = t.dataset.sugg; majAide(r);
     if (t.dataset.dose && !r.querySelector('.xd').value) r.querySelector('.xd').value = t.dataset.dose;
     r.querySelector('.xd').focus();
   }
-  else if (t.matches('.xdel')) { const r = t.closest('.exrow'); if (box.children.length > 1) r.remove(); else r.querySelectorAll('input').forEach(i => i.value = ''); }
+  else if (t.matches('.xdel')) { const r = t.closest('.exrow'); if (box.children.length > 1) r.remove(); else { r.querySelectorAll('input').forEach(i => i.value = ''); majAide(r); } }
   else if (t.matches('.bdel')) { if ($('seBlocs').children.length > 1) bloc.remove(); }
 });
-$('seBlocs').addEventListener('input', e => { if (e.target.matches('.bt')) refreshBloc(e.target.closest('.blocedit')); });
+$('seBlocs').addEventListener('input', e => {
+  if (e.target.matches('.bt')) refreshBloc(e.target.closest('.blocedit'));
+  else if (e.target.matches('.xn')) majAide(e.target.closest('.exrow'));
+});
 $('seAddBloc').onclick = () => { const el = blocEl({titre: ''}, currentSport()); $('seBlocs').appendChild(el); el.querySelector('.bt').focus(); };
 
 $('seForm').onsubmit = async e => {

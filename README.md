@@ -17,6 +17,7 @@ js/api.js               Requêtes vers la base
 js/planning.js          Affichage du planning, inscriptions, votes, suppression
 js/partage.js           Refaire une activité, partage WhatsApp, ajout à l'agenda
 js/formulaires.js       Proposer et modifier une activité
+js/lexique.js           Explication courte et vidéo YouTube de chaque exercice technique
 js/seances.js           Séances du groupe : créer, modifier, dupliquer, partager, supprimer, proposer au planning
 js/notifications.js     Installation de l'appli et notifications push
 js/main.js              Démarrage et rafraîchissement automatique
@@ -60,3 +61,7 @@ Dans l'onglet Séances, chacun peut créer une séance pour son sport. Le sport 
 Les séances sont dans la table `ft_seances` de la base Supabase. Les blocs y sont enregistrés en JSON : `[{titre, ex: [{dose, nom, note}]}]`.
 
 Un lien de la forme `…/training/#seance-<id>` ouvre directement une séance. C'est le lien envoyé par le bouton Partager.
+
+## Lexique des exercices
+
+`js/lexique.js` associe chaque exercice technique (L-sit, scapula pull-ups, rondade…) à une explication en français et à une recherche YouTube. Elles s'affichent sous l'exercice dans la fiche de séance et dans l'éditeur. Un exercice dont le nom commence par un mot du lexique est reconnu (« Tractions à la barre fixe » utilise « tractions »).
