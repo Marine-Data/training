@@ -8,7 +8,7 @@ async function repeatActivity(id) {
   const hh = a.heure ? a.heure.slice(0, 5) : '';
   // On rouvre le formulaire pré-rempli : une date (la semaine suivante) ou plusieurs dates (sondage).
   slotPrefill = {date: d, heure: hh}; pendingEnd = a.duree_fin || null;
-  seanceLiee = a.seance_id || null;
+  seanceLiee = a.seance_id || null; prepSeanceSelect('fSeance');
   lieuChoisi = a.lieu_id || null; renderLieuxSugg();
   $('addTitle').textContent = 'Refaire cette activité';
   $('addForm').reset(); $('repeatOpts').hidden = true; $('slotRows').innerHTML = ''; setMulti(false);

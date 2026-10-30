@@ -327,3 +327,4 @@ dialog.run .actions{position:sticky;bottom:0;background:var(--papier);border-top
 .semedit select{font:inherit;width:100%;padding:9px 10px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}
 .snum{font-family:var(--f-titre);font-weight:400;flex:1}
 .horsligne{border:var(--trait) solid var(--encre);background:var(--encre);color:var(--papier);font-weight:700;font-size:.88rem;padding:8px 12px;margin-bottom:12px}
+.selseance{font:inherit;width:100%;padding:11px 12px;border:var(--trait-fin) solid var(--encre);border-radius:0;background:var(--case);color:var(--encre);font-size:16px}

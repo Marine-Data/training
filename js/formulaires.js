@@ -10,6 +10,7 @@ function openEdit(id, focus) {
   $('eDate').required = !poll; $('eDate').min = todayStr();
   $('eDate').value = a.date || ''; $('eHeure').value = a.heure ? a.heure.slice(0, 5) : '';
   lieuChoisi = a.lieu_id || null; renderLieuxSugg();
+  seanceLiee = a.seance_id || null; prepSeanceSelect('eSeance');
   $('ePlaces').value = a.places || '';
   $('eLieu').value = a.lieu || ''; $('eTitre').value = a.titre; $('eDesc').value = a.description || ''; $('eErr').textContent = '';
   $('eDel').hidden = !(me && norm(a.organisateur) === norm(me));
@@ -35,7 +36,7 @@ $('editForm').onsubmit = async e => {
   e.preventDefault();
   const a = editing, poll = a.statut === 'sondage', multi = $('eMulti').checked;
   const pl = parseInt($('ePlaces').value, 10);
-  const body = {titre: $('eTitre').value.trim(), lieu: $('eLieu').value.trim() || null, lieu_id: lieuChoisi, places: pl > 0 && pl <= 200 ? pl : null, description: $('eDesc').value.trim() || null};
+  const body = {titre: $('eTitre').value.trim(), lieu: $('eLieu').value.trim() || null, lieu_id: lieuChoisi, places: pl > 0 && pl <= 200 ? pl : null, seance_id: seanceLiee, description: $('eDesc').value.trim() || null};
   if (!poll && !multi) { body.date = $('eDate').value; body.heure = $('eHeure').value || null; }
   let slots = [];
   if (multi) {
@@ -79,7 +80,22 @@ function readSlots(box) {
   return slots;
 }
 let slotPrefill = null, pendingEnd = null; // utilisés quand on « refait » une activité
-let seanceLiee = null; // séance liée à l'activité proposée (bouton « Proposer au planning »)
+let seanceLiee = null; // séance liée à l'activité (bouton « Proposer au planning » ou choix dans le formulaire)
+
+// Liste des séances du groupe, rangées par sport, pour l'associer à une activité.
+function fillSeanceSelect(id, val) {
+  const parSport = {};
+  seances.forEach(s => (parSport[s.sport] = parSport[s.sport] || []).push(s));
+  $(id).innerHTML = '<option value="">Aucune séance</option>' + Object.keys(parSport).sort((a, b) => a.localeCompare(b, 'fr')).map(sp =>
+    `<optgroup label="${esc(sp)}">${parSport[sp].sort((a, b) => a.titre.localeCompare(b.titre, 'fr', {numeric: true}))
+      .map(s => `<option value="${s.id}">${esc(s.titre)}</option>`).join('')}</optgroup>`).join('');
+  $(id).value = val && seances.some(s => s.id === val) ? val : '';
+}
+async function prepSeanceSelect(id) {
+  fillSeanceSelect(id, seanceLiee);
+  if (!seLoaded) { await loadSeances(); fillSeanceSelect(id, seanceLiee); }
+}
+['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; }));
 function setMulti(on) {
   $('fixedWhen').hidden = on; $('pollWhen').hidden = !on;
   $('repeatWrap').hidden = on; if (on) { $('fRepeat').checked = false; $('repeatOpts').hidden = true; }
@@ -98,6 +114,7 @@ $('addBtn').onclick = async () => {
   slotPrefill = null; pendingEnd = null; seanceLiee = null; $('addTitle').textContent = 'Proposer une activité';
   $('addForm').reset(); $('repeatOpts').hidden = true; lieuChoisi = null; renderLieuxSugg(); $('slotRows').innerHTML = ''; setMulti(false);
   $('fDate').min = todayStr(); $('fDate').value = todayStr(); $('addErr').textContent = '';
+  prepSeanceSelect('fSeance');
   $('addDlg').showModal();
 };
 $('addCancel').onclick = () => $('addDlg').close();

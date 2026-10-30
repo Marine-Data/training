@@ -211,7 +211,7 @@ async function planSeance(s) {
   setView('planning');
   await $('addBtn').onclick();
   if (!$('addDlg').open) return;
-  seanceLiee = s.id;
+  seanceLiee = s.id; fillSeanceSelect('fSeance', s.id);
   $('fTitre').value = s.titre.slice(0, 120);
   const resume = [s.sport + (s.duree ? ' · ' + s.duree + ' min' : ''),
     ...(s.blocs || []).filter(b => (b.ex || []).length).map(b => b.titre + ' : ' + b.ex.map(x => x.nom).join(', '))];
