@@ -179,7 +179,7 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .bhead .bt{font-family:var(--f-titre);font-size:1rem}
 .bdel{font:inherit;font-size:.82rem;font-weight:700;color:var(--ecarlate-txt);background:none;border:0;text-decoration:underline;cursor:pointer;padding:6px 2px;flex:none}
 .exs{display:flex;flex-direction:column;gap:10px}
-.exrow{display:grid;grid-template-columns:6.8em 1fr 36px;gap:6px;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--trame)}
+.exrow{display:grid;grid-template-columns:minmax(4.5em,32%) minmax(0,1fr) 36px;gap:6px;align-items:center;padding-bottom:10px;border-bottom:1px dashed var(--trame)}
 .exrow:last-child{border-bottom:0;padding-bottom:0}
 .exrow .xo{grid-column:1/-1;font-size:14px;padding:8px 10px}
 .exrow input{padding:9px 10px}

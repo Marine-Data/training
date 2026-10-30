@@ -55,7 +55,7 @@ Pour une nouvelle page de séance, ajoute dans le `<head>` le lien des polices e
 
 ## Séances du groupe
 
-Dans l'onglet Séances, chacun peut créer une séance pour son sport. Le sport choisi pré-remplit les blocs (échauffement, corps de séance…), l'unité proposée (mètres, essais, séries) et des suggestions d'exercices. Ces réglages sont dans `SPORTS`, en haut de `js/seances.js` : pour ajouter un sport, ajoute une ligne.
+Dans l'onglet Séances, chacun peut créer une séance pour son sport. Le sport choisi pré-remplit les blocs (échauffement, corps de séance…), l'unité proposée (mètres, essais, séries) et des suggestions d'exercices. Ces réglages sont dans `SPORTS`, en haut de `js/seances.js` : chaque sport liste ses blocs, et chaque bloc son unité et ses suggestions. Un bloc renommé (« Retour au calme », « Mobilité »…) reprend les suggestions qui correspondent.
 
 Les séances sont dans la table `ft_seances` de la base Supabase. Les blocs y sont enregistrés en JSON : `[{titre, ex: [{dose, nom, note}]}]`.
 

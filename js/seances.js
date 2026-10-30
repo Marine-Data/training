@@ -1,24 +1,60 @@
 // Séances du groupe : chacun peut créer, modifier, dupliquer, partager ou supprimer une séance.
 // Chaque sport a ses blocs, ses unités et ses suggestions d'exercices.
 
+// Pour chaque sport : ses blocs, et pour chaque bloc l'unité proposée et des suggestions d'exercices.
+// Un bloc renommé ou ajouté reprend les suggestions par mot-clé (échauffement, étirements…), sinon celles du sport.
+const ECHAUFF_GENERIQUE = {dose: '5 min', sugg: ['Corde à sauter', 'Montées de genoux', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Squats lents']};
+const ETIR_GENERIQUE = {dose: '30 s', sugg: ['Pectoraux au mur', 'Dorsaux', 'Ischios', 'Psoas en fente', 'Épaules', 'Avant-bras et poignets']};
 const SPORTS = {
-  'Tricking':       {emo: '🤸', dose: '5 essais',   blocs: ['Échauffement', 'Technique', 'Enchaînements', 'Étirements'],
-                     sugg: ['Roue', 'Rondade', 'Papillon', 'Macaco', 'Flip arrière', 'Salto avant', 'Poirier', 'Kicks', 'Grand écart']},
-  'Natation':       {emo: '🏊', dose: '200 m',      blocs: ['Échauffement', 'Corps de séance', 'Retour au calme'],
-                     sugg: ['Crawl', 'Dos', 'Brasse', 'Jambes avec planche', 'Pull-buoy', 'Éducatifs', 'Sprints 25 m', 'Nage libre souple']},
-  'Running':        {emo: '🏃', dose: '10 min',     blocs: ['Échauffement', 'Corps de séance', 'Retour au calme'],
-                     sugg: ['Footing', 'Gammes', 'Fractionné 400 m', '30/30', 'Côtes', 'Allure tempo', 'Récup en marchant']},
-  'Renfo':          {emo: '💪', dose: '4 × 8',      blocs: ['Échauffement', 'Force', 'Gainage', 'Étirements'],
-                     sugg: ['Squats', 'Pompes', 'Tractions', 'Soulevé de terre', 'Fentes', 'Dips', 'Gainage', 'Rameur']},
-  'Street workout': {emo: '🏋️', dose: '3 × 6',      blocs: ['Échauffement', 'Force', 'Skills', 'Étirements'],
-                     sugg: ['Tractions', 'Dips', 'Pompes', 'Muscle-up', 'L-sit', 'Front lever', 'Australian pull-ups']},
-  'Gym suédoise':   {emo: '🧘', dose: '2 min',      blocs: ['Échauffement', 'Cardio', 'Renforcement', 'Étirements'],
-                     sugg: ['Jumping jacks', 'Montées de genoux', 'Squats', 'Burpees', 'Fentes', 'Gainage']},
-  'Yoga':           {emo: '🪷', dose: '5 respirations', blocs: ['Centrage', 'Postures', 'Relaxation'],
-                     sugg: ['Salutation au soleil', 'Chien tête en bas', 'Guerrier II', 'Pigeon', 'Pont', 'Savasana']},
-  'Autre':          {emo: '⚡', dose: '10 min',     blocs: ['Échauffement', 'Corps de séance', 'Retour au calme'], sugg: []}
+  'Tricking': {emo: '🤸', blocs: {
+    'Échauffement':  {dose: '3 par côté', sugg: ['Corde à sauter', 'Balancés de jambe', 'Kicks', 'Roue', 'Roue à une main', 'Rondade']},
+    'Technique':     {dose: '5 essais', sugg: ['Papillon', 'Macaco', 'Flip arrière', 'Salto avant', 'Roue sans les mains', 'Poirier']},
+    'Enchaînements': {dose: '5', sugg: ['Rondade + rebond', 'Rondade + flip', 'Élan + papillon', 'Macaco + macaco']},
+    'Étirements':    {dose: '45 s', sugg: ['Grand écart antéro-postérieur', 'Grand écart facial', 'Pont', 'Chameau', 'Fente basse', 'Demi-écart']}}},
+  'Natation': {emo: '🏊', blocs: {
+    'Échauffement':    {dose: '200 m', sugg: ['Crawl souple', 'Dos', 'Brasse', 'Éducatifs']},
+    'Corps de séance': {dose: '4 × 100 m', sugg: ['Crawl', 'Jambes avec planche', 'Pull-buoy', 'Sprints 25 m', 'Pyramide', 'Brasse']},
+    'Retour au calme': {dose: '100 m', sugg: ['Nage libre souple', 'Dos souple']}}},
+  'Running': {emo: '🏃', blocs: {
+    'Échauffement':    {dose: '10 min', sugg: ['Footing lent', 'Gammes', 'Accélérations progressives']},
+    'Corps de séance': {dose: '6 × 400 m', sugg: ['Fractionné 400 m', '30/30', 'Côtes', 'Allure tempo', 'Sortie longue']},
+    'Retour au calme': {dose: '5 min', sugg: ['Footing lent', 'Marche', 'Étirements mollets']}}},
+  'Renfo': {emo: '💪', blocs: {
+    'Échauffement': {dose: '5 min', sugg: ['Rameur', 'Vélo', 'Corde à sauter', 'Mobilité des épaules', 'Squats à vide']},
+    'Force':        {dose: '4 × 8', sugg: ['Squats', 'Soulevé de terre', 'Tractions', 'Pompes', 'Fentes', 'Dips', 'Développé militaire']},
+    'Gainage':      {dose: '3 × 30 s', sugg: ['Planche', 'Planche latérale', 'Hollow hold', 'Dead bug', 'Superman']},
+    'Étirements':   ETIR_GENERIQUE}},
+  'Street workout': {emo: '🏋️', blocs: {
+    'Échauffement': {dose: '10 rép.', sugg: ['Rotations d’épaules', 'Mobilité des poignets', 'Scapula pull-ups', 'Pompes scapulaires', 'Dead hang', 'Squats lents']},
+    'Force':        {dose: '3 × 6', sugg: ['Tractions', 'Dips', 'Pompes', 'Australian pull-ups', 'Pompes pike', 'Pistol squats']},
+    'Skills':       {dose: '5 × 10 s', sugg: ['Handstand', 'L-sit', 'Tuck front lever', 'Back lever', 'Muscle-up', 'Human flag']},
+    'Étirements':   {dose: '30 s', sugg: ['Pectoraux au mur', 'Dorsaux à la barre', 'Épaules', 'Avant-bras et poignets', 'Pike stretch', 'Pancake']}}},
+  'Gym suédoise': {emo: '🧘', blocs: {
+    'Échauffement':  {dose: '1 min', sugg: ['Marche active', 'Montées de genoux', 'Rotations de bras', 'Talons-fesses']},
+    'Cardio':        {dose: '2 min', sugg: ['Jumping jacks', 'Burpees', 'Pas chassés', 'Talons-fesses']},
+    'Renforcement':  {dose: '1 min', sugg: ['Squats', 'Fentes', 'Pompes', 'Gainage']},
+    'Étirements':    ETIR_GENERIQUE}},
+  'Yoga': {emo: '🪷', blocs: {
+    'Centrage':   {dose: '1 min', sugg: ['Respiration ventrale', 'Posture de l’enfant', 'Chat-vache']},
+    'Postures':   {dose: '5 respirations', sugg: ['Salutation au soleil', 'Chien tête en bas', 'Guerrier II', 'Pigeon', 'Pont']},
+    'Relaxation': {dose: '3 min', sugg: ['Torsion allongée', 'Savasana']}}},
+  'Autre': {emo: '⚡', blocs: {
+    'Échauffement':    ECHAUFF_GENERIQUE,
+    'Corps de séance': {dose: '10 min', sugg: []},
+    'Retour au calme': ETIR_GENERIQUE}}
 };
 const sportOf = s => SPORTS[s] || SPORTS['Autre'];
+const normT = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+function blocInfo(sport, titre) {
+  const blocs = sportOf(sport).blocs, n = normT(titre);
+  const exact = Object.keys(blocs).find(k => normT(k) === n);
+  if (exact) return blocs[exact];
+  const kw = k => Object.keys(blocs).find(x => normT(x).includes(k));
+  if (/echauf|centrage|mobilit/.test(n)) return blocs[kw('echauf') || ''] || ECHAUFF_GENERIQUE;
+  if (/etire|souplesse|calme|relax|recup/.test(n)) return blocs[kw('etire') || kw('calme') || kw('relax') || ''] || ETIR_GENERIQUE;
+  const main = Object.keys(blocs).find(k => !/echauf|centrage|etire|calme|relax/.test(normT(k)));
+  return blocs[main] || {dose: '10 min', sugg: []};
+}
 
 let seances = [];
 let seFilter = 'Tous';
@@ -135,25 +171,34 @@ window.addEventListener('pagehide', () => {
 
 /* Éditeur : création, modification, duplication */
 let editingSe = null;
-function exRow(x = {}, sport) {
+function exRow(x = {}, dose) {
   const r = document.createElement('div'); r.className = 'exrow';
-  r.innerHTML = `<input class="xd" maxlength="40" placeholder="${esc(sportOf(sport).dose)}" aria-label="Quantité" value="${esc(x.dose || '')}">
+  r.innerHTML = `<input class="xd" maxlength="40" placeholder="${esc(dose)}" aria-label="Quantité" value="${esc(x.dose || '')}">
     <input class="xn" maxlength="80" placeholder="Exercice" aria-label="Exercice" value="${esc(x.nom || '')}">
     <button type="button" class="xdel" aria-label="Retirer cet exercice">✕</button>
     <input class="xo" maxlength="200" placeholder="Consigne ou lien (optionnel)" aria-label="Consigne" value="${esc(x.note || '')}">`;
   return r;
 }
+function suggHtml(info) {
+  return info.sugg.length ? info.sugg.map(n => `<button type="button" data-sugg="${esc(n)}">+ ${esc(n)}</button>`).join('') : '';
+}
 function blocEl(b, sport) {
   const el = document.createElement('fieldset'); el.className = 'blocedit';
-  const sugg = sportOf(sport).sugg;
+  const info = blocInfo(sport, b.titre);
   el.innerHTML = `<div class="bhead"><input class="bt" maxlength="60" value="${esc(b.titre || '')}" placeholder="Nom du bloc" aria-label="Nom du bloc">
       <button type="button" class="bdel" aria-label="Retirer ce bloc">Retirer</button></div>
     <div class="exs"></div>
-    ${sugg.length ? `<div class="sugg">${sugg.map(n => `<button type="button" data-sugg="${esc(n)}">+ ${esc(n)}</button>`).join('')}</div>` : ''}
+    <div class="sugg">${suggHtml(info)}</div>
     <button type="button" class="btn small addex">+ Exercice</button>`;
   const box = el.querySelector('.exs');
-  (b.ex && b.ex.length ? b.ex : [{}]).forEach(x => box.appendChild(exRow(x, sport)));
+  (b.ex && b.ex.length ? b.ex : [{}]).forEach(x => box.appendChild(exRow(x, info.dose)));
   return el;
+}
+// Renommer un bloc met à jour ses suggestions et l'unité proposée.
+function refreshBloc(el) {
+  const info = blocInfo(currentSport(), el.querySelector('.bt').value);
+  el.querySelector('.sugg').innerHTML = suggHtml(info);
+  el.querySelectorAll('.xd').forEach(i => i.placeholder = info.dose);
 }
 function currentSport() { const r = document.querySelector('input[name="seSport"]:checked'); return r ? r.value : 'Autre'; }
 function fillBlocs(blocs, sport) {
@@ -179,7 +224,7 @@ function openEditor(s, copy) {
   $('seTitre').value = s ? (copy ? s.titre + ' (copie)' : s.titre).slice(0, 120) : '';
   $('seDuree').value = s && s.duree ? s.duree : '';
   $('seDesc').value = s && s.description ? s.description : '';
-  fillBlocs(s && s.blocs && s.blocs.length ? s.blocs : sportOf(sport).blocs.map(t => ({titre: t})), sport);
+  fillBlocs(s && s.blocs && s.blocs.length ? s.blocs : Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   $('seErr').textContent = '';
   $('seEditDlg').showModal();
   if (!s) $('seTitre').focus();
@@ -190,21 +235,22 @@ $('seCancel').onclick = () => $('seEditDlg').close();
 // Changer de sport : si rien n'est encore saisi, on propose les blocs de ce sport ; sinon on adapte seulement les aides.
 $('seSports').addEventListener('change', () => {
   const sport = currentSport();
-  if (isBlank()) fillBlocs(sportOf(sport).blocs.map(t => ({titre: t})), sport);
+  if (isBlank()) fillBlocs(Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   else fillBlocs(readBlocs(), sport);
 });
 $('seBlocs').addEventListener('click', e => {
   const t = e.target, bloc = t.closest('.blocedit'); if (!bloc) return;
-  const sport = currentSport(), box = bloc.querySelector('.exs');
-  if (t.matches('.addex')) { const r = exRow({}, sport); box.appendChild(r); r.querySelector('.xd').focus(); }
+  const dose = blocInfo(currentSport(), bloc.querySelector('.bt').value).dose, box = bloc.querySelector('.exs');
+  if (t.matches('.addex')) { const r = exRow({}, dose); box.appendChild(r); r.querySelector('.xd').focus(); }
   else if (t.matches('[data-sugg]')) {
     const empty = [...box.querySelectorAll('.exrow')].find(r => !r.querySelector('.xn').value.trim());
-    const r = empty || box.appendChild(exRow({}, sport));
+    const r = empty || box.appendChild(exRow({}, dose));
     r.querySelector('.xn').value = t.dataset.sugg; r.querySelector('.xd').focus();
   }
   else if (t.matches('.xdel')) { const r = t.closest('.exrow'); if (box.children.length > 1) r.remove(); else r.querySelectorAll('input').forEach(i => i.value = ''); }
   else if (t.matches('.bdel')) { if ($('seBlocs').children.length > 1) bloc.remove(); }
 });
+$('seBlocs').addEventListener('input', e => { if (e.target.matches('.bt')) refreshBloc(e.target.closest('.blocedit')); });
 $('seAddBloc').onclick = () => { const el = blocEl({titre: ''}, currentSport()); $('seBlocs').appendChild(el); el.querySelector('.bt').focus(); };
 
 $('seForm').onsubmit = async e => {
