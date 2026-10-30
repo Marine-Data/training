@@ -24,11 +24,12 @@ const SPORTS = {
     'Force':        {dose: '4 × 8', sugg: ['Squats', 'Soulevé de terre', 'Tractions', 'Pompes', 'Fentes', 'Dips', 'Développé militaire']},
     'Gainage':      {dose: '3 × 30 s', sugg: ['Planche', 'Planche latérale', 'Hollow hold', 'Dead bug', 'Superman']},
     'Étirements':   ETIR_GENERIQUE}},
-  'Street workout': {emo: '🏋️', blocs: {
-    'Échauffement': {dose: '10 rép.', sugg: ['Corde à sauter|5 min', 'Course à pied|10 min', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Rotations de chevilles', 'Ouverture thoracique', 'Chat-vache', 'Scapula pull-ups', 'Pompes scapulaires', 'Dead hang|3 × 20 s']},
-    'Force':        {dose: '3 × 6', sugg: ['Tractions', 'Dips', 'Pompes', 'Australian pull-ups', 'Pompes pike', 'Pistol squats']},
-    'Skills':       {dose: '5 × 10 s', sugg: ['Handstand', 'L-sit', 'Tuck front lever', 'Back lever', 'Muscle-up', 'Human flag']},
-    'Étirements':   {dose: '30 s', sugg: ['Pectoraux au mur', 'Dorsaux à la barre', 'Épaules', 'Avant-bras et poignets', 'Pike stretch', 'Pancake']}}},
+  // Pensé pour un parc de street workout en extérieur : barre fixe, barres parallèles, barre basse, espalier, banc.
+  'Street workout': {emo: '🏋️', desc: 'Parc de street workout : barre fixe, barres parallèles, barre basse, banc…', blocs: {
+    'Échauffement': {dose: '10 rép.', sugg: ['Corde à sauter|5 min', 'Course à pied|10 min', 'Rotations d’épaules', 'Mobilité des poignets', 'Cercles de hanches', 'Rotations de chevilles', 'Ouverture thoracique', 'Chat-vache', 'Scapula pull-ups à la barre fixe', 'Pompes scapulaires', 'Suspension à la barre fixe|3 × 20 s']},
+    'Force':        {dose: '3 × 6', sugg: ['Tractions à la barre fixe', 'Tractions négatives|3 × 4', 'Australian pull-ups à la barre basse|3 × 8', 'Dips aux barres parallèles', 'Dips sur banc|3 × 10', 'Pompes', 'Pompes inclinées sur barre basse|3 × 10', 'Pompes déclinées pieds sur banc', 'Relevés de genoux suspendu|3 × 8', 'Step-ups sur banc|3 × 10']},
+    'Skills':       {dose: '5 × 10 s', sugg: ['Support aux barres parallèles|3 × 20 s', 'L-sit aux barres parallèles', 'Tuck front lever à la barre fixe', 'Skin the cat|3 × 3', 'Handstand contre un mur', 'Muscle-up à la barre fixe|3 × 2']},
+    'Étirements':   {dose: '30 s', sugg: ['Dorsaux suspendu à la barre', 'Pectoraux aux barres parallèles', 'Épaules à l’espalier', 'Avant-bras et poignets', 'Mollets sur une marche', 'Pike stretch', 'Pancake']}}},
   'Gym suédoise': {emo: '🧘', blocs: {
     'Échauffement':  {dose: '1 min', sugg: ['Marche active', 'Montées de genoux', 'Rotations de bras', 'Talons-fesses']},
     'Cardio':        {dose: '2 min', sugg: ['Jumping jacks', 'Burpees', 'Pas chassés', 'Talons-fesses']},
@@ -226,6 +227,7 @@ function openEditor(s, copy) {
   $('seTitre').value = s ? (copy ? s.titre + ' (copie)' : s.titre).slice(0, 120) : '';
   $('seDuree').value = s && s.duree ? s.duree : '';
   $('seDesc').value = s && s.description ? s.description : '';
+  $('seDesc').placeholder = sportOf(sport).desc || 'Niveau, matériel, objectif…';
   fillBlocs(s && s.blocs && s.blocs.length ? s.blocs : Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   $('seErr').textContent = '';
   $('seEditDlg').showModal();
@@ -237,6 +239,7 @@ $('seCancel').onclick = () => $('seEditDlg').close();
 // Changer de sport : si rien n'est encore saisi, on propose les blocs de ce sport ; sinon on adapte seulement les aides.
 $('seSports').addEventListener('change', () => {
   const sport = currentSport();
+  $('seDesc').placeholder = sportOf(sport).desc || 'Niveau, matériel, objectif…';
   if (isBlank()) fillBlocs(Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   else fillBlocs(readBlocs(), sport);
 });
