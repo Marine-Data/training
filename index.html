@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff4e8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Freestyle">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>Freestyle Tricks – Planning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Freestyle <span>Tricks</span> 🤸‍♀️</h1>
+    <p class="sub">Propose une activité ou inscris-toi à celles des autres.</p>
+    <div class="who" id="who"></div>
+  </header>
+
+  <nav class="mtabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tabPlanning" data-view="planning" aria-selected="true">📅 Planning</button>
+    <button role="tab" id="tabSeances" data-view="seances" aria-selected="false">💪 Séances</button>
+  </nav>
+
+  <div id="viewPlanning" role="tabpanel" aria-labelledby="tabPlanning">
+    <div id="appbar"></div>
+    <button class="btn primary big" id="addBtn">+ Proposer une activité</button>
+    <div id="list" aria-live="polite"></div>
+  </div>
+
+  <div id="viewSeances" role="tabpanel" aria-labelledby="tabSeances" hidden>
+    <h2 class="vh">Séances types</h2>
+    <p class="meta">Des exemples de séances pour s’entraîner ensemble ou chacun de son côté.</p>
+    <a class="disc" href="seances/tricking.html">
+      <span class="emo" aria-hidden="true">🤸</span>
+      <span class="dtxt"><b>Tricking</b><small>2 séances de 1h15 (flips, rotations), avec fiches illustrées et tutos</small></span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+    <div class="disc soon"><span class="emo" aria-hidden="true">🏃</span><span class="dtxt"><b>Running</b><small>Bientôt</small></span></div>
+    <a class="disc" href="seances/natation.html">
+      <span class="emo" aria-hidden="true">🏊</span>
+      <span class="dtxt"><b>Natation</b><small>3 séances de 1 500 m : celle d'Adrien, sa V2 avec planche, et une avec sprints</small></span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+    <a class="disc" href="seances/renfo.html">
+      <span class="emo" aria-hidden="true">💪</span>
+      <span class="dtxt"><b>Renfo en salle</b><small>1 h à Neoness, pour les objectifs du tricking : poirier, flips, rotations, écarts</small></span>
+      <span class="go" aria-hidden="true">→</span>
+    </a>
+    <div class="disc soon"><span class="emo" aria-hidden="true">🧘</span><span class="dtxt"><b>Gym suédoise</b><small>Bientôt</small></span></div>
+    <div class="disc soon"><span class="emo" aria-hidden="true">🏋️</span><span class="dtxt"><b>Street workout</b><small>Bientôt</small></span></div>
+  </div>
+</main>
+
+<!-- Prénom -->
+<dialog id="nameDlg">
+  <form method="dialog" id="nameForm">
+    <h2>C'est quoi ton prénom ?</h2>
+    <p class="meta">Juste pour que les autres voient qui vient. Pas de compte à créer.</p>
+    <label for="nameInput">Prénom</label>
+    <input id="nameInput" maxlength="40" autocomplete="given-name" required>
+    <div class="actions">
+      <button class="btn" type="button" id="nameCancel">Annuler</button>
+      <button class="btn primary" type="submit">C'est parti</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Nouvelle activité -->
+<dialog id="addDlg">
+  <form id="addForm">
+    <h2 id="addTitle">Proposer une activité</h2>
+    <label for="fTitre">Quoi ?</label>
+    <input id="fTitre" maxlength="120" placeholder="Ex : Natation, running, street workout…" required>
+    <div class="sugg" id="sugg"></div>
+    <label class="toggle"><input type="checkbox" id="fMulti"> Plusieurs dates possibles, on choisit selon les dispos</label>
+    <div class="two" id="fixedWhen">
+      <div><label for="fDate">Quand ?</label><input type="date" id="fDate" required></div>
+      <div><label for="fHeure">À quelle heure ?</label><input type="time" id="fHeure"></div>
+    </div>
+    <div id="pollWhen" hidden>
+      <label>Dates proposées</label>
+      <div id="slotRows"></div>
+      <button class="btn small" type="button" id="addSlot">+ Ajouter une date</button>
+      <p class="hint">Chacun cochera les dates où il est dispo, puis tu valides la meilleure.</p>
+    </div>
+    <label for="fLieu">Où ?</label>
+    <input id="fLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
+    <label for="fDesc">Détails (optionnel)</label>
+    <textarea id="fDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
+    <p class="err" id="addErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="addCancel">Annuler</button>
+      <button class="btn primary" type="submit" id="addSubmit">Publier</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Installer sur iPhone -->
+<dialog id="iosDlg">
+  <h2>Installer sur iPhone</h2>
+  <p class="meta">Sur iPhone, les notifications ne marchent qu'une fois l'appli ajoutée à l'écran d'accueil.</p>
+  <ol class="steps">
+    <li>Ouvre ce lien dans <b>Safari</b> (depuis WhatsApp : ⋯ puis « Ouvrir dans Safari »).</li>
+    <li>Touche le bouton <b>Partager</b> ⬆️ en bas de l'écran.</li>
+    <li>Choisis <b>Sur l'écran d'accueil</b>, puis <b>Ajouter</b>.</li>
+    <li>Ouvre l'appli <b>Freestyle</b> depuis ton écran d'accueil et touche « Activer les notifications ».</li>
+  </ol>
+  <div class="actions"><button class="btn primary" type="button" id="iosClose">Compris</button></div>
+</dialog>
+
+<!-- Compléter une activité -->
+<dialog id="editDlg">
+  <form id="editForm">
+    <h2>Modifier l'activité</h2>
+    <label for="eTitre">Activité</label>
+    <input id="eTitre" maxlength="120" required>
+    <div class="two" id="eWhen">
+      <div><label for="eDate">Date</label><input type="date" id="eDate"></div>
+      <div><label for="eHeure">Heure</label><input type="time" id="eHeure"></div>
+    </div>
+    <div id="eMultiWrap">
+      <label class="toggle"><input type="checkbox" id="eMulti"> Proposer plusieurs dates à la place</label>
+      <div id="eSlots" hidden>
+        <div id="eSlotRows"></div>
+        <button class="btn small" type="button" id="eAddSlot">+ Ajouter une date</button>
+        <p class="hint">Les personnes déjà inscrites sont comptées dispo sur la date actuelle.</p>
+      </div>
+    </div>
+    <label for="eLieu">Lieu</label>
+    <input id="eLieu" maxlength="200" placeholder="Adresse ou nom du lieu">
+    <label for="eDesc">Détails</label>
+    <textarea id="eDesc" maxlength="600" placeholder="Niveau, matériel, programme…"></textarea>
+    <p class="err" id="eErr" role="alert"></p>
+    <div class="actions">
+      <button class="btn" type="button" id="eCancel">Annuler</button>
+      <button class="btn primary" type="submit" id="eSubmit">Enregistrer</button>
+    </div>
+    <p style="text-align:center;margin-top:10px"><button type="button" class="del" id="eDel">Supprimer cette activité</button></p>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+<script src="js/config.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/api.js"></script>
+<script src="js/planning.js"></script>
+<script src="js/partage.js"></script>
+<script src="js/formulaires.js"></script>
+<script src="js/notifications.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
