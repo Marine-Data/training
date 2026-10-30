@@ -10,9 +10,10 @@ function openEdit(id, focus) {
   $('eDate').required = !poll; $('eDate').min = todayStr();
   $('eDate').value = a.date || ''; $('eHeure').value = a.heure ? a.heure.slice(0, 5) : '';
   lieuChoisi = a.lieu_id || null; renderLieuxSugg();
-  seanceLiee = a.seance_id || null; prepSeanceSelect('eSeance');
+  seanceLiee = a.seance_id || null;
   $('ePlaces').value = a.places || '';
   $('eLieu').value = a.lieu || ''; $('eTitre').value = a.titre; $('eDesc').value = a.description || ''; $('eErr').textContent = '';
+  prepSeanceSelect('eSeance');
   $('eDel').hidden = !(me && norm(a.organisateur) === norm(me));
   $('editDlg').showModal();
   const target = {titre: 'eTitre', desc: 'eDesc', lieu: 'eLieu', heure: 'eHeure', date: 'eDate'}[focus] || 'eTitre';
@@ -82,12 +83,21 @@ function readSlots(box) {
 let slotPrefill = null, pendingEnd = null; // utilisés quand on « refait » une activité
 let seanceLiee = null; // séance liée à l'activité (bouton « Proposer au planning » ou choix dans le formulaire)
 
-// Liste des séances du groupe, rangées par sport, pour l'associer à une activité.
+// Sport deviné d'après le nom et le lieu de l'activité, pour proposer ses séances en premier.
+const SPORT_MOTS = [['Renfo', /neoness|salle|renfo|muscu|fitness|basic.?fit|crossfit/i], ['Natation', /piscine|natation|nage|swim/i],
+  ['Running', /course|run|footing|fractionn|piste|10 ?km|semi|marathon|vma/i], ['Tricking', /trick|flip|salto|acro|trampo|capoeira/i],
+  ['Street workout', /street|calisth|barres?\b|traction/i], ['Yoga', /yoga/i], ['Gym suédoise', /gym su/i]];
+const sportDevine = texte => (SPORT_MOTS.find(([, re]) => re.test(texte || '')) || [])[0] || '';
+
+// Liste des séances du groupe, rangées par sport (le sport deviné en premier), pour l'associer à une activité.
 function fillSeanceSelect(id, val) {
+  const texte = id === 'eSeance' ? $('eTitre').value + ' ' + $('eLieu').value : $('fTitre').value + ' ' + $('fLieu').value;
+  const devine = sportDevine(texte);
   const parSport = {};
   seances.forEach(s => (parSport[s.sport] = parSport[s.sport] || []).push(s));
-  $(id).innerHTML = '<option value="">Aucune séance</option>' + Object.keys(parSport).sort((a, b) => a.localeCompare(b, 'fr')).map(sp =>
-    `<optgroup label="${esc(sp)}">${parSport[sp].sort((a, b) => a.titre.localeCompare(b.titre, 'fr', {numeric: true}))
+  const ordre = Object.keys(parSport).sort((a, b) => (b === devine) - (a === devine) || a.localeCompare(b, 'fr'));
+  $(id).innerHTML = '<option value="">Aucune séance</option>' + ordre.map(sp =>
+    `<optgroup label="${esc(sp)}${sp === devine ? ' (suggéré)' : ''}">${parSport[sp].sort((a, b) => a.titre.localeCompare(b.titre, 'fr', {numeric: true}))
       .map(s => `<option value="${s.id}">${esc(s.titre)}</option>`).join('')}</optgroup>`).join('');
   $(id).value = val && seances.some(s => s.id === val) ? val : '';
 }
@@ -96,6 +106,9 @@ async function prepSeanceSelect(id) {
   if (!seLoaded) { await loadSeances(); fillSeanceSelect(id, seanceLiee); }
 }
 ['fSeance', 'eSeance'].forEach(id => $(id).addEventListener('change', e => { seanceLiee = e.target.value || null; }));
+// Le nom ou le lieu change : on remet les séances du bon sport en tête.
+[['fTitre', 'fSeance'], ['fLieu', 'fSeance'], ['eTitre', 'eSeance'], ['eLieu', 'eSeance']].forEach(([c, s]) =>
+  $(c).addEventListener('change', () => fillSeanceSelect(s, seanceLiee)));
 function setMulti(on) {
   $('fixedWhen').hidden = on; $('pollWhen').hidden = !on;
   $('repeatWrap').hidden = on; if (on) { $('fRepeat').checked = false; $('repeatOpts').hidden = true; }

@@ -78,9 +78,7 @@ async function loadSeances() {
 /* Liste et filtres par sport */
 // Séances illustrées (pages du dossier seances/), rangées dans leur sport.
 const ILLUSTREES = {
-  'Tricking': [{titre: 'Tricking : flips et rotations', info: '2 séances de 1h15 avec fiches dessinées et tutos', href: 'seances/tricking.html'}],
-  'Natation': [{titre: 'Natation 1 500 m', info: '3 séances : celle d’Adrien, sa V2 avec planche, une avec sprints', href: 'seances/natation.html'}],
-  'Renfo':    [{titre: 'Renfo en salle', info: '1 h pour les objectifs du tricking : poirier, flips, rotations, écarts', href: 'seances/renfo.html'}]
+  'Tricking': [{titre: 'Tricking : version dessinée', info: 'Les séances A et B avec une fiche dessinée par exercice', href: 'seances/tricking.html'}]
 };
 
 // Accueil : tous les sports en tuiles. Un sport ouvert : ses filtres par type, puis ses séances.
