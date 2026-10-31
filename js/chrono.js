@@ -56,7 +56,7 @@ function lancerChrono(mode, secondes, label, quandFini) {
 function arreterChrono() { clearInterval(tick); tick = null; chrono = null; majChrono(); }
 function majChrono() {
   const box = $('runTimer');
-  if (!chrono) { box.className = 'runtimer'; box.innerHTML = `<span class="tlabel">La récup se lance quand tu touches « Fait »</span><span class="tbig">–:––</span>
+  if (!chrono) { box.className = 'runtimer'; box.innerHTML = `<span class="tlabel">La récup se lance quand tu valides une série</span><span class="tbig">–:––</span>
       <button type="button" class="btn small" data-run="libre">⏱ Chrono libre</button>`; return; }
   if (chrono.mode === 'down') {
     const reste = Math.max(0, (chrono.fin - Date.now()) / 1000);
@@ -85,6 +85,9 @@ function lireDose(dose) {
   return m ? {series: +m[1], reps: m[2].trim()} : {series: 1, reps: String(dose || '').trim()};
 }
 const estTemps = reps => /^\d+\s*(s|min)\b/i.test(reps);
+// Distance (natation, course) : pas de poids, et les −/+ avancent de 25 m.
+const estDistance = reps => /^\d+\s*(m|km|longueurs?)\b/i.test(reps);
+const sansKg = reps => estTemps(reps) || estDistance(reps);
 const nombre = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
 const fmtKg = n => String(Math.round(n * 100) / 100).replace('.', ',');
 const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
@@ -139,7 +142,7 @@ function derniereFoisHtml(it) {
   const e = h[0], km = kgMax(e), cible = nombre(it.reps);
   let conseil = '';
   if (e.r === 'douleur') conseil = `<span class="alerte">Tu avais signalé une douleur : vas-y doucement.</span>`;
-  else if (isFinite(km) && cible !== null && !estTemps(it.reps) && e.s.length >= it.series && e.r !== 'dur'
+  else if (isFinite(km) && cible !== null && !sansKg(it.reps) && e.s.length >= it.series && e.r !== 'dur'
     && e.s.every(([r]) => (nombre(r) ?? 0) >= cible)) {
     const nv = fmtKg(km + (km < 10 ? 1 : 2.5));
     if (nombre(it.kg) === null || nombre(it.kg) <= km) conseil = `<button type="button" class="lien" data-run="prendre" data-kg="${nv}">Tout réussi : essayer ${nv} kg ?</button>`;
@@ -197,7 +200,7 @@ function stepper(f, label, val, extra) {
     <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="1" aria-label="${label} plus">+</button>${extra || ''}</div></div>`;
 }
 function carteActive(it) {
-  const tps = estTemps(it.reps), d = dureeEx({dose: it.reps}), r = it.recup;
+  const tps = sansKg(it.reps), d = dureeEx({dose: it.reps}), r = it.recup;
   const k = Math.min(it.sets.length + 1, it.series), fini = complet(it);
   const dots = Array.from({length: it.series}, (_, i) => `<i class="${i < it.sets.length ? 'ok' : i === it.sets.length ? 'now' : ''}"></i>`).join('');
   const journal = it.sets.length ? `<small class="journal">${it.sets.map(([rp, kg], i) => `S${i + 1} : ${esc(rp)}${kg ? ' × ' + esc(kg) + ' kg' : ''}`).join(' · ')}</small>` : '';
@@ -205,7 +208,7 @@ function carteActive(it) {
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
     <div class="steppers">
-      ${stepper('reps', tps ? 'Durée' : 'Reps', it.reps)}
+      ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : 'Reps', it.reps)}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
       ${stepper('series', 'Séries', it.series)}
       ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : 'Aucune')}
@@ -239,7 +242,7 @@ function renderRun() {
     const etat = complet(it) ? '✓' : it.passe ? '↷' : it.sets.length ? it.sets.length + '/' + it.series : '';
     return head + `<div class="runex${actif ? ' cur' : ''}${complet(it) ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
       <div class="rline"><span class="retat" aria-hidden="true">${etat}</span>
-        <span class="rtxt"><b>${esc(doseTxt(it))}</b> ${esc(it.x.nom)}<span class="rkg">${it.kg && !estTemps(it.reps) ? ' · ' + esc(it.kg) + ' kg' : ''}</span>
+        <span class="rtxt"><b>${esc(doseTxt(it))}</b> ${esc(it.x.nom)}<span class="rkg">${it.kg && !sansKg(it.reps) ? ' · ' + esc(it.kg) + ' kg' : ''}</span>
         ${actif && it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${actif && typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></div>
       ${actif ? carteActive(it) : ''}
     </div>`;
@@ -253,7 +256,7 @@ function bilan() {
   const records = [], durs = [];
   run.items.forEach(it => {
     series += it.sets.length;
-    it.sets.forEach(([r, k]) => { const nr = nombre(r), nk = nombre(k); if (nr !== null && nk !== null && !estTemps(r)) volume += nr * nk; });
+    it.sets.forEach(([r, k]) => { const nr = nombre(r), nk = nombre(k); if (nr !== null && nk !== null && !sansKg(r)) volume += nr * nk; });
     if (it.sets.length) {
       const avant = histoEx(it.x.nom).map(kgMax).filter(isFinite), now = kgMax({s: it.sets});
       if (isFinite(now) && avant.length && now > Math.max(...avant)) records.push([it.x.nom, now, Math.max(...avant)]);
@@ -310,7 +313,7 @@ $('runList').addEventListener('input', e => {
   else it.reps = e.target.value;
   const ex = e.target.closest('.runex');
   ex.querySelector('.rtxt>b').textContent = doseTxt(it);
-  ex.querySelector('.rkg').textContent = it.kg && !estTemps(it.reps) ? ' · ' + it.kg + ' kg' : '';
+  ex.querySelector('.rkg').textContent = it.kg && !sansKg(it.reps) ? ' · ' + it.kg + ' kg' : '';
   sauverRun();
 });
 $('runList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.dataset.f) e.target.blur(); });
@@ -325,14 +328,14 @@ function pas(it, f, d) {
   }
   else {
     const m = String(it.reps).match(/^(\d+)(.*)$/); if (!m) return;
-    const st = estTemps(it.reps) && /s/i.test(m[2]) ? 5 : 1;
+    const st = estTemps(it.reps) && /s/i.test(m[2]) ? 5 : /^\s*m\b/i.test(m[2]) ? 25 : 1;
     it.reps = Math.max(st, +m[1] + d * st) + m[2];
   }
 }
 function action(a, b) {
   const it = run.items[run.cur], r = it.recup;
   if (a === 'serie') {
-    it.sets.push([String(it.reps).trim(), estTemps(it.reps) ? '' : it.kg]); it.passe = false;
+    it.sets.push([String(it.reps).trim(), sansKg(it.reps) ? '' : it.kg]); it.passe = false;
     if (r) {
       const nx = complet(it) ? suivant(run.cur) : -1;
       lancerChrono('down', r, complet(it) ? (nx >= 0 ? 'Récup · ensuite : ' + run.items[nx].x.nom : 'Récup · dernier exercice fait') : 'Récup · série ' + (it.sets.length + 1));
