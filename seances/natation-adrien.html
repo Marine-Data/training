@@ -94,7 +94,7 @@ document.querySelector('.wa').addEventListener('click',function(){
 (function(){
 var SB='https://osqyczwawbbwjwaubtvc.supabase.co/rest/v1';
 var K='sb_publishable_Z4ykq9R8uYhtrAks301TPA_ujR1K2VB';
-var H={apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'};
+var H={apikey:K,Authorization:'Bearer '+K,'Content-Type':'application/json'};try{H['x-code-groupe']=localStorage.getItem('ft_groupe')||''}catch(e){}
 var SEANCE='natation-adrien';
 var me='';try{me=localStorage.getItem('ft_prenom')||''}catch(e){}
 function msg(t,ok){var m=document.getElementById('msg');m.hidden=false;m.textContent=t;m.style.color=ok?'#1E9A78':'#D9474B'}
