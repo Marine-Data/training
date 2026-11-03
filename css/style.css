@@ -10,7 +10,7 @@ h1,h2,h3{font-family:var(--f-titre);font-weight:400}
 /* En-tête : case-titre avec le kanji et un trait de pinceau */
 header{position:relative;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;align-items:center;padding:18px;margin:4px 0 18px;background-color:var(--case);isolation:isolate}
 header::before{content:"";position:absolute;inset:2px;border:var(--trait) solid var(--encre);filter:url(#pinceau);pointer-events:none}
-.kanji{grid-row:span 3;position:relative;font-family:var(--f-titre);font-size:3.6rem;line-height:.9;color:var(--encre);background:var(--papier);padding:8px 10px 12px;margin:0 8px 8px 0}
+.kanji{grid-row:span 4;position:relative;font-family:var(--f-titre);font-size:3.6rem;line-height:.9;color:var(--encre);background:var(--papier);padding:8px 10px 12px;margin:0 8px 8px 0}
 .kanji::before{content:"";position:absolute;inset:0;border:var(--trait) solid var(--encre);filter:url(#pinceau)}
 .kanji::after{content:"";position:absolute;inset:0;transform:translate(8px,8px);background:var(--foret);z-index:-1;filter:url(#pinceau)}
 h1{font-size:1.9rem;line-height:1.05}
@@ -400,3 +400,9 @@ details.plus[open]>summary::after{content:" ▴"}
 .recap .stats span{font-size:.8rem;font-weight:700;color:var(--encre-douce)}
 .charges li{display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px}
 .charges li b{flex:1 1 100%}
+
+/* Bouton discret pour partager l'appli, sous le texte de l'en-tête */
+.partapp{grid-column:2;justify-self:start;display:inline-flex;align-items:center;gap:6px;font:inherit;font-size:.88rem;font-weight:800;
+  color:var(--encre);background:none;border:0;border-bottom:var(--trait-fin) solid var(--electrique);padding:6px 0 2px;margin-top:-4px;min-height:36px;cursor:pointer}
+.partapp svg{width:16px;height:16px;color:var(--electrique-txt)}
+.partapp:active{transform:translate(1px,1px)}

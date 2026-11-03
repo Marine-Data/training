@@ -76,3 +76,16 @@ function downloadIcs(id) {
   toast('Ouvre le fichier pour l’ajouter à ton agenda 📅');
 }
 
+
+/* Partager l'appli : feuille de partage du téléphone, sinon copie du lien.
+   Le code du groupe n'est jamais mis dans le message : il se demande dans le groupe WhatsApp. */
+$('partApp').onclick = async () => {
+  const url = pageUrl();
+  const texte = 'Le planning et les séances du groupe Freestyle Tricks 🤸 Le code est dans le groupe WhatsApp.';
+  if (navigator.share) {
+    try { await navigator.share({title: 'Freestyle Tricks', text: texte, url}); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(texte + '\n' + url); toast('Lien copié, colle-le où tu veux 📋'); }
+  catch (e) { window.open('https://wa.me/?text=' + encodeURIComponent(texte + '\n' + url), '_blank', 'noopener'); }
+};
