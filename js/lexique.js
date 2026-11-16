@@ -78,6 +78,7 @@ const LEXIQUE = {
   'saut vertical bras': ['Saut vers le haut lancé par les bras qui montent en premier : la base du flip arrière.', 'back tuck jump arm swing drill'],
   'chute arriere': ['Debout dos à un tapis épais, tu sautes vers le haut et tu te laisses tomber à plat dos : apprend à ne pas avoir peur de l’arrière.', 'back drop drill backflip mat'],
   'table inversee': ['Assise, mains derrière toi doigts vers les pieds, tu montes les hanches pour former une table : ouvre les épaules et renforce les poignets.', 'table inversée reverse tabletop'],
+  'remontee du pont': ['Depuis le pont, tu pousses le bassin vers l’avant et tu ramènes le poids sur les pieds pour revenir debout.', 'remonter du pont souplesse arrière tuto'],
   'descente en pont': ['Dos au mur, tu descends les mains le long du mur jusqu’au sol pour arriver en pont, puis tu remontes de la même façon.', 'walk down the wall bridge tuto'],
   'elan du raiz': ['Préparation du raiz : pas de côté, le buste plonge vers le sol et les bras balaient pour lancer la rotation.', 'raiz tricking tutorial'],
   'tdr': ['Touchdown raiz : rotation à plat, buste vers le sol, une main touche le sol pendant que les jambes passent en ciseaux par-dessus.', 'touchdown raiz tutorial'],
