@@ -152,18 +152,20 @@ dialog{max-height:calc(100dvh - 24px);overflow-y:auto}
 button.disc{font:inherit;width:100%;text-align:left;cursor:pointer}
 button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre)}
 #seView{display:flex;flex-direction:column;gap:6px}
-#seView h2{font-size:1.5rem;margin:4px 0 0;line-height:1.15}
+#seView h2{font-size:clamp(1.15rem,4.6vw,1.4rem);margin:4px 0 0;line-height:1.15}
 #seView .badge{align-self:flex-start}
 #seView a{color:var(--electrique-txt);font-weight:700}
 .sebloc{margin-top:12px}
 .sebloc h3{font-size:1.05rem;margin-bottom:6px}
 .sebloc ol{list-style:none;margin:0;padding:0;background:var(--case);border:var(--trait) solid var(--encre)}
-.sebloc li{display:flex;gap:12px;align-items:baseline;padding:9px 12px;border-top:1px solid var(--encre)}
+.sebloc li{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:2px 10px;padding:10px 12px;border-top:1px solid var(--encre)}
 .sebloc li:first-child{border-top:0}
-.sebloc li b{font-family:var(--f-titre);font-weight:400;min-width:4.6em;text-align:right;font-variant-numeric:tabular-nums}
-.sebloc li span{flex:1;min-width:0}
-.sebloc li small{display:block;color:var(--encre-douce);font-size:.85rem}
-.seactions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.sebloc li b{grid-column:2;grid-row:1;justify-self:end;text-align:right;max-width:8.5em;font-family:var(--f-titre);font-weight:400;font-size:.9rem;font-variant-numeric:tabular-nums}
+.sebloc li span{grid-column:1;grid-row:1;min-width:0;font-weight:700}
+.sebloc li small{display:block;color:var(--encre-douce);font-size:.85rem;font-weight:400}
+.seactions{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:18px}
+.seactions .btn{grid-column:span 2;padding-inline:8px;font-size:.9rem;white-space:nowrap}
+.seactions .half{grid-column:span 3}
 .seactions .full{grid-column:1/-1}
 .sports{border:0;padding:0;margin:8px 0 0}
 .sports legend{font-weight:700;font-size:.88rem;margin-bottom:6px;padding:0}
@@ -188,7 +190,12 @@ button.disc:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ombre
 .blocedit .sugg button{font-size:.78rem;padding:3px 8px}
 .blocedit .addex{align-self:flex-start}
 /* Explications des exercices */
-.lex{display:block;color:var(--encre-douce);font-size:.84rem;line-height:1.4;margin-top:3px}
+.lex{display:block;color:var(--encre-douce);font-size:.84rem;line-height:1.4;margin-top:4px;font-weight:400}
+.lex>summary{cursor:pointer;color:var(--electrique-txt);font-weight:700;list-style:none;width:max-content}
+.lex>summary::-webkit-details-marker{display:none}
+.lex>summary::before{content:'› ';display:inline-block;transition:transform .15s}
+.lex[open]>summary::before{content:'⌄ '}
+.lex>span{display:block;margin-top:2px}
 .lex a{color:var(--electrique-txt);font-weight:800;white-space:nowrap}
 .xhelp{grid-column:1/-1;margin:0}
 .xhelp:empty{display:none}

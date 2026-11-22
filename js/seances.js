@@ -138,10 +138,12 @@ $('seList').addEventListener('click', e => {
 });
 
 /* Explication et vidéo des exercices techniques (voir lexique.js) */
-function lexHtml(nom) {
-  const l = lexique(nom); if (!l) return '';
+// fiche = true : seuls les gestes techniques (ceux qui ont une vidéo) affichent l'aide, pour garder la fiche courte.
+function lexHtml(nom, fiche) {
+  const l = lexique(nom); if (!l || (fiche && !l.video)) return '';
   const video = l.video ? ` <a href="${l.video}" target="_blank" rel="noopener">▶ Voir une vidéo</a>` : '';
-  return `<small class="lex">${esc(l.texte)}${video}</small>`;
+  // Replié par défaut : la fiche reste courte, l'explication est à un tap.
+  return `<details class="lex"><summary>Comment faire&nbsp;?</summary><span>${esc(l.texte)}${video}</span></details>`;
 }
 function majAide(row) { row.querySelector('.xhelp').innerHTML = lexHtml(row.querySelector('.xn').value); }
 
@@ -161,7 +163,7 @@ function openSeance(id) {
     ${s.sport === 'Running' ? alluresBoxHtml() : ''}
     ${(s.blocs || []).filter(b => (b.ex || []).length).map(b => `
       <section class="sebloc"><h3>${esc(b.titre || 'Bloc')}</h3><ol>${b.ex.map(x => `
-        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}${allureExHtml(x)}${lexHtml(x.nom)}</span></li>`).join('')}</ol></section>`).join('')}`;
+        <li><b>${esc(x.dose || '')}</b><span>${esc(x.nom)}${x.note ? `<small>${linkify(x.note)}</small>` : ''}${allureExHtml(x)}${lexHtml(x.nom, true)}</span></li>`).join('')}</ol></section>`).join('')}`;
   const fav = $('seActions').querySelector('[data-se="fav"]');
   fav.textContent = favoris.has(s.id) ? '★ En favori' : '☆ Favori';
   fav.setAttribute('aria-pressed', String(favoris.has(s.id)));
