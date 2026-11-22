@@ -140,7 +140,8 @@ $('seList').addEventListener('click', e => {
 /* Explication et vidéo des exercices techniques (voir lexique.js) */
 function lexHtml(nom) {
   const l = lexique(nom); if (!l) return '';
-  return `<small class="lex">${esc(l.texte)} <a href="${l.video}" target="_blank" rel="noopener">▶ Voir une vidéo</a></small>`;
+  const video = l.video ? ` <a href="${l.video}" target="_blank" rel="noopener">▶ Voir une vidéo</a>` : '';
+  return `<small class="lex">${esc(l.texte)}${video}</small>`;
 }
 function majAide(row) { row.querySelector('.xhelp').innerHTML = lexHtml(row.querySelector('.xn').value); }
 
