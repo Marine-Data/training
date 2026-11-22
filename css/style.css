@@ -425,3 +425,11 @@ details.plus[open]>summary::after{content:" ▴"}
 .reglages[open]>summary::before{content:'⌄ '}
 .runex .rtxt{text-align:left}
 .runex.cur .retat:empty{display:none}
+
+.aide{display:block;margin:-6px 0 10px;color:var(--encre-douce);font-size:.8rem}
+.aide .trop{color:var(--ecarlate-txt)}
+details.desc>summary{cursor:pointer;list-style:none;outline:none}
+details.desc>summary:focus-visible{text-decoration:underline}
+details.desc>summary::-webkit-details-marker{display:none}
+details.desc[open]>summary{display:none}
+details.desc>p{margin:0}

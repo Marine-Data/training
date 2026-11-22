@@ -159,7 +159,9 @@ function openSeance(id) {
     <h2>${esc(s.titre)}</h2>
     ${(s.tags || []).length ? `<p class="tagline">${s.tags.map(g => `<i>${esc(g)}</i>`).join('')}</p>` : ''}
     <p class="meta">${meta}</p>
-    ${s.description ? `<p class="desc">${linkify(s.description)}</p>` : ''}
+    ${s.description ? (s.description.length > 95
+      ? `<details class="desc"><summary>${linkify(s.description.slice(0, 95).replace(/\s\S*$/, ''))}… <span class="lien">Lire la suite</span></summary><p>${linkify(s.description)}</p></details>`
+      : `<p class="desc">${linkify(s.description)}</p>`) : ''}
     ${s.sport === 'Running' ? alluresBoxHtml() : ''}
     ${(s.blocs || []).filter(b => (b.ex || []).length).map(b => `
       <section class="sebloc"><h3>${esc(b.titre || 'Bloc')}</h3><ol>${b.ex.map(x => `
@@ -306,6 +308,7 @@ function openEditor(s, copy) {
   $('seTitre').value = s ? (copy ? s.titre + ' (copie)' : s.titre).slice(0, 120) : '';
   $('seDuree').value = s && s.duree ? s.duree : '';
   $('seDesc').value = s && s.description ? s.description : '';
+  majTitreN();
   $('seDesc').placeholder = sportOf(sport).desc || 'Niveau, matériel, objectif…';
   fillBlocs(s && s.blocs && s.blocs.length ? s.blocs : Object.keys(sportOf(sport).blocs).map(t => ({titre: t})), sport);
   fillTags(s ? s.tags || [] : []);
@@ -378,3 +381,12 @@ async function ouvrirSeanceLiee(id) {
   if (!seLoaded || !seances.some(s => s.id === id)) await loadSeances();
   if (seances.some(s => s.id === id)) openSeance(id); else toast('Cette séance a été supprimée.');
 }
+
+/* Compteur de caractères du titre : au-delà de 45, le titre passe sur plusieurs lignes partout. */
+function majTitreN() {
+  const i = $('seTitre'), n = $('seTitreN'); if (!i || !n) return;
+  const l = i.value.trim().length;
+  n.textContent = l ? l + ' / 45' : '';
+  n.classList.toggle('trop', l > 45);
+}
+document.addEventListener('input', e => { if (e.target && e.target.id === 'seTitre') majTitreN(); });
