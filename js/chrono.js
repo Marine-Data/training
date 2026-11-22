@@ -87,7 +87,10 @@ function lireDose(dose) {
 const estTemps = reps => /^\d+\s*(s|min)\b/i.test(reps);
 // Distance (natation, course) : pas de poids, et les −/+ avancent de 25 m.
 const estDistance = reps => /^\d+\s*(m|km|longueurs?)\b/i.test(reps);
-const sansKg = reps => estTemps(reps) || estDistance(reps);
+// Nombre de répétitions seul : « 8 », « 12 rép. ». Les doses d'acrobatie (« 6 essais », « 5 par côté »,
+// « 2 allers-retours ») ne sont pas des reps chargeables : pas de champ poids.
+const estReps = reps => /^\d+(\s*(r[ée]p(s|\.|étitions)?)?)$/i.test(String(reps || '').trim());
+const sansKg = reps => !estReps(reps);
 const nombre = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
 const fmtKg = n => String(Math.round(n * 100) / 100).replace('.', ',');
 const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
@@ -193,8 +196,8 @@ function suivant(depuis) {
   for (let k = 1; k <= L; k++) { const i = (depuis + k) % L; if (!traite(run.items[i])) return i; }
   return -1;
 }
-function stepper(f, label, val, extra) {
-  return `<div class="stp"><span class="stl">${label}</span><div class="stc">
+function stepper(f, label, val, extra, cls) {
+  return `<div class="stp${cls ? ' ' + cls : ''}"><span class="stl">${label}</span><div class="stc">
     <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="-1" aria-label="${label} moins">−</button>
     ${f === 'series' || f === 'recup' ? `<b class="stv">${esc(val)}</b>` : `<input type="text" ${f === 'kg' ? 'inputmode="decimal" placeholder="–"' : ''} data-f="${f}" value="${esc(val)}" aria-label="${label}" autocomplete="off">`}
     <button type="button" class="btn small" data-run="pas" data-f="${f}" data-d="1" aria-label="${label} plus">+</button>${extra || ''}</div></div>`;
@@ -208,10 +211,10 @@ function carteActive(it) {
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
     <div class="steppers">
-      ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : 'Reps', it.reps)}
+      ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Dose', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
       ${stepper('series', 'Séries', it.series)}
-      ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : 'Aucune')}
+      ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—')}
     </div>
     ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
     ${derniereFoisHtml(it)}
@@ -232,7 +235,7 @@ function renderRun() {
   $('runProg').textContent = faits + ' / ' + run.items.length + (passes ? ' · ' + passes + ' passé' + (passes > 1 ? 's' : '') : '');
   $('runBar').style.width = (run.items.length ? avance / run.items.length * 100 : 0) + '%';
   $('runClose').textContent = run.recap ? '← Retour' : 'Quitter';
-  $('runFin').textContent = run.recap ? '✓ Enregistrer la séance' : '✓ J’ai fini la séance';
+  $('runFin').textContent = run.recap ? '✓ Enregistrer' : '✓ Terminer';
   $('runFin').classList.toggle('pulse', run.recap || (run.items.every(traite) && faits > 0));
   if (run.recap) { $('runList').innerHTML = recapHtml(); sauverRun(); return; }
   let bloc = null;
@@ -242,7 +245,7 @@ function renderRun() {
     const etat = complet(it) ? '✓' : it.passe ? '↷' : it.sets.length ? it.sets.length + '/' + it.series : '';
     return head + `<div class="runex${actif ? ' cur' : ''}${complet(it) ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
       <div class="rline"><span class="retat" aria-hidden="true">${etat}</span>
-        <span class="rtxt"><b>${esc(doseTxt(it))}</b> ${esc(it.x.nom)}<span class="rkg">${it.kg && !sansKg(it.reps) ? ' · ' + esc(it.kg) + ' kg' : ''}</span>
+        <span class="rtxt"><b>${esc(it.x.nom)}</b> <span class="rdose">${esc(doseTxt(it))}</span><span class="rkg">${it.kg && !sansKg(it.reps) ? ' · ' + esc(it.kg) + ' kg' : ''}</span>
         ${actif && it.x.note ? `<small>${esc(it.x.note)}</small>` : ''}${actif && typeof allureExHtml === 'function' ? allureExHtml(it.x) : ''}</span></div>
       ${actif ? carteActive(it) : ''}
     </div>`;
