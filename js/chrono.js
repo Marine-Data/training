@@ -56,8 +56,8 @@ function lancerChrono(mode, secondes, label, quandFini) {
 function arreterChrono() { clearInterval(tick); tick = null; chrono = null; majChrono(); }
 function majChrono() {
   const box = $('runTimer');
-  if (!chrono) { box.className = 'runtimer'; box.innerHTML = `<span class="tlabel">La récup se lance quand tu valides une série</span><span class="tbig">–:––</span>
-      <button type="button" class="btn small" data-run="libre">⏱ Chrono libre</button>`; return; }
+  // Au repos : juste un petit bouton. Le gros afficheur n'apparaît que quand un chrono tourne.
+  if (!chrono) { box.className = 'runtimer idle'; box.innerHTML = `<button type="button" class="btn small" data-run="libre">⏱ Chrono</button>`; return; }
   if (chrono.mode === 'down') {
     const reste = Math.max(0, (chrono.fin - Date.now()) / 1000);
     box.className = 'runtimer on' + (reste <= 3 ? ' fin' : '');
@@ -210,6 +210,7 @@ function carteActive(it) {
   const prochain = suivant(run.cur);
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
+    <details class="reglages"${tps ? '' : ' open'}><summary>Dose, séries, récup</summary>
     <div class="steppers">
       ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Dose', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
@@ -217,6 +218,7 @@ function carteActive(it) {
       ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—')}
     </div>
     ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
+    </details>
     ${derniereFoisHtml(it)}
     ${fini ? `<div class="ressenti"><span>Comment c’était ?</span><div>${RESSENTIS.map(([v, l]) => `<button type="button" class="btn small" data-run="ressenti" data-v="${v}" aria-pressed="${it.ressenti === v}">${l}</button>`).join('')}</div></div>` : ''}
     <div class="runbtns">

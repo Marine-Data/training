@@ -415,3 +415,13 @@ details.plus[open]>summary::after{content:" ▴"}
   color:var(--encre);background:none;border:0;border-bottom:var(--trait-fin) solid var(--electrique);padding:6px 0 2px;margin-top:-4px;min-height:36px;cursor:pointer}
 .partapp svg{width:16px;height:16px;color:var(--electrique-txt)}
 .partapp:active{transform:translate(1px,1px)}
+
+/* Mode séance : au repos, le chrono tient sur une ligne ; les réglages se déplient au besoin. */
+.runtimer.idle{border:0;background:none;padding:0;display:flex;justify-content:flex-end}
+.reglages{margin:0}
+.reglages>summary{cursor:pointer;list-style:none;width:max-content;font-size:.8rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--encre-douce);padding:4px 0}
+.reglages>summary::-webkit-details-marker{display:none}
+.reglages>summary::before{content:'› '}
+.reglages[open]>summary::before{content:'⌄ '}
+.runex .rtxt{text-align:left}
+.runex.cur .retat:empty{display:none}
