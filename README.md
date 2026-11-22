@@ -43,6 +43,11 @@ Les scripts sont chargés dans cet ordre à la fin de `index.html`. Ils partagen
 2. Dans le dépôt : Settings, puis Pages, Branch `main`, dossier `/ (root)`, Save.
 3. Le site est en ligne à `https://marine-data.github.io/freestyle-tricks/` après une ou deux minutes.
 
+**À chaque modification d'un fichier `css/` ou `js/`**, change le numéro de version : remplace tous les
+`?v=…` d'`index.html` par la date du jour (`?v=20261122a`) et incrémente `CACHE` dans `sw.js`
+(`ft-v14` → `ft-v15`). Sans ça, les téléphones qui ont déjà ouvert l'appli gardent l'ancienne version
+en cache et ne voient pas le changement.
+
 ## Ajouter une séance type
 
 1. Ajoute la page dans `seances/`.
