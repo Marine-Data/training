@@ -463,3 +463,7 @@ details.desc>p{margin:0}
 .runrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .runrow .runtimer.idle{margin-left:auto}
 .runrow .runtimer.on{flex:1 1 100%}
+
+.blochead{display:flex;align-items:center;gap:10px;margin:16px 0 6px}
+.blochead h3{margin:0;flex:1;min-width:0}
+.blochead .btn{flex:none}

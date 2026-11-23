@@ -212,11 +212,11 @@ function carteActive(it) {
   const prochain = suivant(run.cur);
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
-    <details class="reglages"${tps ? '' : ' open'}><summary>${sportCharge() ? 'Dose, séries, récup' : 'Dose et séries'}</summary>
+    <details class="reglages"${tps ? '' : ' open'}><summary>${sportCharge() ? 'Dose, séries, récup' : (it.series > 1 ? 'Dose et séries' : 'Dose')}</summary>
     <div class="steppers">
       ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Dose', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
-      ${stepper('series', 'Séries', it.series)}
+      ${sportCharge() || it.series > 1 ? stepper('series', 'Séries', it.series) : ''}
       ${sportCharge() ? stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—') : ''}
     </div>
     ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
@@ -269,7 +269,12 @@ function renderRun() {
   if (run.recap) { $('runList').innerHTML = recapHtml(); sauverRun(); return; }
   let bloc = null;
   $('runList').innerHTML = (run.repris ? `<p class="repris">Séance reprise là où tu en étais. <button type="button" class="lien" data-run="zero">Recommencer à zéro</button></p>` : '') + run.items.map((it, i) => {
-    const head = it.bloc !== bloc ? `<h3>${esc(bloc = it.bloc || 'Bloc')}</h3>` : '';
+    // En-tête de bloc : on peut valider les exercices enchaînés sans toucher au téléphone (échauffement…)
+    const nouveauBloc = it.bloc !== bloc;
+    const nomBloc = nouveauBloc ? (bloc = it.bloc || 'Bloc') : bloc;
+    const reste = nouveauBloc && run.items.filter(x => (x.bloc || 'Bloc') === nomBloc && !traite(x)).length;
+    const head = nouveauBloc ? `<div class="blochead"><h3>${esc(nomBloc)}</h3>${reste > 1
+      ? `<button type="button" class="btn small" data-run="bloc" data-b="${esc(nomBloc)}">✓ Bloc fait</button>` : ''}</div>` : '';
     const actif = i === run.cur;
     const etat = complet(it) ? '✓' : it.passe ? '↷' : it.sets.length ? it.sets.length + '/' + it.series : '';
     return head + `<div class="runex${actif ? ' cur' : ''}${complet(it) ? ' done' : ''}${it.passe ? ' skip' : ''}" data-sel="${i}">
@@ -283,6 +288,26 @@ function renderRun() {
 }
 
 /* ---------- Récap de fin de séance ---------- */
+// Ce qu'on compte dépend du sport : des kilos en salle, des mètres dans l'eau, des essais en acrobatie.
+function totalSport() {
+  const sport = (run.s && run.s.sport) || '';
+  let m = 0, essais = 0;
+  run.items.forEach(it => {
+    const n = it.sets.length; if (!n) return;
+    const d = String(it.reps);
+    const metres = /^\s*([\d\s]+(?:[.,]\d+)?)\s*(m|km)\b/i.exec(d.replace(/\u202f|\u00a0/g, ' '));
+    if (metres) {
+      const v = parseFloat(metres[1].replace(/\s/g, '').replace(',', '.'));
+      if (isFinite(v)) m += v * (/km/i.test(metres[2]) ? 1000 : 1) * n;
+    }
+    // Seules les quantités sans unité comptent comme répétitions : « 30 s » est une durée, « 200 m » une distance.
+    if (!estTemps(d) && !estDistance(d)) { const nb = nombre(d); if (nb !== null) essais += nb * n; }
+  });
+  if (/natation/i.test(sport) && m) return {v: Math.round(m).toLocaleString('fr-FR') + ' m', l: 'nagés'};
+  if (/running|course/i.test(sport) && m) return {v: (m / 1000).toFixed(1).replace('.', ',') + ' km', l: 'parcourus'};
+  if (essais) return {v: String(essais), l: 'répétitions'};
+  return null;
+}
 function bilan() {
   let series = 0, volume = 0;
   const records = [], durs = [];
@@ -304,14 +329,29 @@ function recapHtml() {
     <div class="stats">
       <div><b>${faits}/${run.items.length}</b><span>exercices</span></div>
       <div><b>${b.series}</b><span>séries</span></div>
-      <div><b>${b.volume ? fmtKg(Math.round(b.volume)) : '–'}</b><span>kg soulevés</span></div>
+      ${b.volume ? `<div><b>${fmtKg(Math.round(b.volume))}</b><span>kg soulevés</span></div>`
+        : (() => { const t = totalSport(); return t ? `<div><b>${esc(t.v)}</b><span>${esc(t.l)}</span></div>` : ''; })()}
     </div>
     ${b.records.length ? `<h4>🏆 Nouveaux records</h4><ul>${b.records.map(([n, k, a]) => `<li><b>${esc(n)}</b> : ${fmtKg(k)} kg <small>(avant ${fmtKg(a)})</small></li>`).join('')}</ul>` : ''}
     ${b.durs.length ? `<h4>À surveiller</h4><ul>${b.durs.map(i => `<li><b>${esc(i.x.nom)}</b> : ${i.ressenti === 'douleur' ? 'douleur' : 'dur'}</li>`).join('')}</ul>` : ''}
     ${partiels.length ? `<h4>Pas terminés</h4><ul>${partiels.map(i => `<li>${esc(i.x.nom)} <small>(${i.sets.length}/${i.series} séries)</small></li>`).join('')}</ul>` : ''}
     ${passes.length ? `<h4>Passés ou pas faits</h4><p class="meta">${passes.map(i => esc(i.x.nom)).join(' · ')}</p>` : ''}
+    <p><button type="button" class="btn" data-run="partagerecap">💬 Partager au groupe</button></p>
     <p class="meta">Tes charges sont enregistrées avec la séance : tu les retrouveras la prochaine fois, sur n’importe quel téléphone.</p>
   </section>`;
+}
+// Le bilan en quelques lignes, pour le groupe.
+function partageRecap() {
+  const b = bilan(), faits = run.items.filter(complet).length, t = totalSport();
+  const L = ['💪 *' + (run.s.titre || 'Séance') + '*'];
+  const chiffres = [faits + '/' + run.items.length + ' exercices'];
+  if (b.series) chiffres.push(b.series + ' série' + (b.series > 1 ? 's' : ''));
+  if (b.volume) chiffres.push(fmtKg(Math.round(b.volume)) + ' kg soulevés');
+  else if (t) chiffres.push(t.v + ' ' + t.l);
+  L.push(chiffres.join(' · '));
+  if (b.records.length) L.push('🏆 Record : ' + b.records.map(([n, k]) => n + ' ' + fmtKg(k) + ' kg').join(', '));
+  L.push('', typeof pageUrl === 'function' ? pageUrl() : location.href);
+  window.open('https://wa.me/?text=' + encodeURIComponent(L.join('\n')), '_blank', 'noopener');
 }
 function detailsSeance() {
   return {exos: run.items.filter(i => i.sets.length).map(i => ({nom: i.x.nom.slice(0, 80), s: i.sets.slice(0, 20), r: i.ressenti, c: doseTxt(i).slice(0, 30), rc: i.recup}))};
@@ -373,7 +413,17 @@ function action(a, b) {
       lancerChrono('down', r, complet(it) ? (nx >= 0 ? 'Récup · ensuite : ' + run.items[nx].x.nom : 'Récup · dernier exercice fait') : 'Récup · série ' + (it.sets.length + 1));
     }
     renderRun();
-  } else if (a === 'plusserie') { it.series++; renderRun(); }
+  } else if (a === 'bloc') {
+    // Tout le bloc d'un geste : chaque exercice non traité passe à ses séries prévues.
+    const nom = b.dataset.b;
+    run.items.forEach(x => { if ((x.bloc || 'Bloc') === nom && !traite(x)) {
+      while (x.sets.length < x.series) x.sets.push([String(x.reps).trim(), sansKg(x.reps) ? '' : x.kg]);
+      x.passe = false;
+    } });
+    const nx = suivant(run.cur); if (nx >= 0) run.cur = nx;
+    renderRun();
+  } else if (a === 'partagerecap') { partageRecap(); }
+  else if (a === 'plusserie') { it.series++; renderRun(); }
   else if (a === 'annulerserie') { it.sets.pop(); renderRun(); }
   else if (a === 'ressenti') { it.ressenti = it.ressenti === b.dataset.v ? '' : b.dataset.v; avancer(); }
   else if (a === 'suivant') avancer();
