@@ -88,9 +88,11 @@ const estTemps = reps => /^\d+\s*(s|min)\b/i.test(reps);
 // Distance (natation, course) : pas de poids, et les −/+ avancent de 25 m.
 const estDistance = reps => /^\d+\s*(m|km|longueurs?)\b/i.test(reps);
 // Nombre de répétitions seul : « 8 », « 12 rép. ». Les doses d'acrobatie (« 6 essais », « 5 par côté »,
-// « 2 allers-retours ») ne sont pas des reps chargeables : pas de champ poids.
+// « 2 allers-retours ») ne sont pas des reps chargeables.
 const estReps = reps => /^\d+(\s*(r[ée]p(s|\.|étitions)?)?)$/i.test(String(reps || '').trim());
-const sansKg = reps => !estReps(reps);
+// Charge et récup chronométrée ne concernent que la musculation : ailleurs, ce sont deux champs à ignorer.
+const sportCharge = () => /renfo|muscu|street/i.test((run && run.s && run.s.sport) || '');
+const sansKg = reps => !sportCharge() || !estReps(reps);
 const nombre = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? null : n; };
 const fmtKg = n => String(Math.round(n * 100) / 100).replace('.', ',');
 const cleEx = nom => String(nom || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
@@ -210,12 +212,12 @@ function carteActive(it) {
   const prochain = suivant(run.cur);
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
-    <details class="reglages"${tps ? '' : ' open'}><summary>Dose, séries, récup</summary>
+    <details class="reglages"${tps ? '' : ' open'}><summary>${sportCharge() ? 'Dose, séries, récup' : 'Dose et séries'}</summary>
     <div class="steppers">
       ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Dose', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
       ${stepper('series', 'Séries', it.series)}
-      ${stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—')}
+      ${sportCharge() ? stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—') : ''}
     </div>
     ${it.reps !== lireDose(it.x.dose).reps || it.series !== lireDose(it.x.dose).series ? `<small class="prevu">Prévu : ${esc(it.x.dose || '—')} <button type="button" class="lien" data-run="prevu">remettre</button></small>` : ''}
     </details>
@@ -225,7 +227,7 @@ function carteActive(it) {
       ${fini ? `<button type="button" class="btn primary" data-run="suivant">${prochain >= 0 ? 'Exercice suivant →' : 'Voir le récap →'}</button>`
         : `<button type="button" class="btn primary" data-run="serie">✓ Série ${k} faite</button>`}
       ${d && !fini ? `<button type="button" class="btn small" data-run="ex" data-s="${d}" data-l="${esc(it.x.nom)}">▶ ${mmss(d)}</button>` : ''}
-      ${r ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
+      ${r && sportCharge() ? `<button type="button" class="btn small" data-run="recup" data-s="${r}">⏱ Récup ${mmss(r)}</button>` : ''}
       ${fini ? `<button type="button" class="btn small" data-run="plusserie">＋ Une série de plus</button>` : ''}
       ${it.sets.length ? `<button type="button" class="btn small" data-run="annulerserie">↶ Annuler la série ${it.sets.length}</button>` : ''}
       ${it.sets.length || it.passe ? `<button type="button" class="btn small" data-run="annuler">Remettre à faire</button>` : `<button type="button" class="btn small" data-run="passer">↷ Passer</button>`}
@@ -366,7 +368,7 @@ function action(a, b) {
   const it = run.items[run.cur], r = it.recup;
   if (a === 'serie') {
     it.sets.push([String(it.reps).trim(), sansKg(it.reps) ? '' : it.kg]); it.passe = false;
-    if (r) {
+    if (r && sportCharge()) {
       const nx = complet(it) ? suivant(run.cur) : -1;
       lancerChrono('down', r, complet(it) ? (nx >= 0 ? 'Récup · ensuite : ' + run.items[nx].x.nom : 'Récup · dernier exercice fait') : 'Récup · série ' + (it.sets.length + 1));
     }
