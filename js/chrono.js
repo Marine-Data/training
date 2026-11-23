@@ -212,9 +212,9 @@ function carteActive(it) {
   const prochain = suivant(run.cur);
   return `<div class="runseries"><span class="dots" aria-hidden="true">${dots}</span><b>${fini ? 'Exercice terminé' : 'Série ' + k + ' / ' + it.series}</b></div>
     ${journal}
-    <details class="reglages"${tps ? '' : ' open'}><summary>${sportCharge() ? 'Dose, séries, récup' : (it.series > 1 ? 'Dose et séries' : 'Dose')}</summary>
+    <details class="reglages"${tps ? '' : ' open'}><summary>Ajuster${sportCharge() ? ' (poids, séries, récup)' : (it.series > 1 ? ' (séries)' : '')}</summary>
     <div class="steppers">
-      ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Dose', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
+      ${stepper('reps', estTemps(it.reps) ? 'Durée' : estDistance(it.reps) ? 'Distance' : estReps(it.reps) ? 'Reps' : 'Quantité', it.reps, '', String(it.reps).length > 8 ? 'long' : '')}
       ${tps ? '' : stepper('kg', 'Poids (kg)', it.kg)}
       ${sportCharge() || it.series > 1 ? stepper('series', 'Séries', it.series) : ''}
       ${sportCharge() ? stepper('recup', 'Récup', it.recup ? mmss(it.recup) : '—') : ''}
