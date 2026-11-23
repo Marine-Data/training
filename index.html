@@ -16,8 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/charte.css?v=20261122c">
-<link rel="stylesheet" href="css/style.css?v=20261122c">
+<link rel="stylesheet" href="css/charte.css?v=20261123d">
+<link rel="stylesheet" href="css/style.css?v=20261123d">
 </head>
 </head>
 <body>
@@ -241,14 +241,14 @@
 <!-- Mode séance -->
 <dialog id="runDlg" class="run">
   <div class="runhead">
-    <h2 id="runTitre">Séance</h2>
+    <div class="runtop"><h2 id="runTitre">Séance</h2><button class="btn small quit" type="button" id="runClose" aria-label="Quitter la séance">✕</button></div>
     <div class="runprog"><span class="runbar"><i id="runBar"></i></span><b id="runProg">0 / 0</b></div>
-    <div class="runtimer" id="runTimer"></div>
+    <div class="runrow"><div class="runbloc" id="runBloc"></div><div class="runtimer" id="runTimer"></div></div>
   </div>
   <div id="runList"></div>
-  <div class="actions">
-    <button class="btn" type="button" id="runClose">Quitter</button>
-    <button class="btn primary" type="button" id="runFin">✓ Terminer</button>
+  <div class="actions runactions">
+    <button class="btn primary big" type="button" id="runAction">✓ Série faite</button>
+    <button class="btn small" type="button" id="runFin">✓ Terminer</button>
   </div>
 </dialog>
 
@@ -317,23 +317,23 @@
 </dialog>
 
 <div class="toast" id="toast" role="status"></div>
-<script src="js/config.js?v=20261122c"></script>
-<script src="js/utils.js?v=20261122c"></script>
-<script src="js/api.js?v=20261122c"></script>
-<script src="js/meteo.js?v=20261122c"></script>
-<script src="js/lieux.js?v=20261122c"></script>
-<script src="js/code.js?v=20261122c"></script>
-<script src="js/planning.js?v=20261122c"></script>
-<script src="js/partage.js?v=20261122c"></script>
-<script src="js/formulaires.js?v=20261122c"></script>
-<script src="js/notifications.js?v=20261122c"></script>
-<script src="js/lexique.js?v=20261122c"></script>
-<script src="js/allures.js?v=20261122c"></script>
-<script src="js/progression.js?v=20261122c"></script>
-<script src="js/seances.js?v=20261122c"></script>
-<script src="js/programmes.js?v=20261122c"></script>
-<script src="js/chrono.js?v=20261122c"></script>
-<script src="js/defi.js?v=20261122c"></script>
-<script src="js/main.js?v=20261122c"></script>
+<script src="js/config.js?v=20261123d"></script>
+<script src="js/utils.js?v=20261123d"></script>
+<script src="js/api.js?v=20261123d"></script>
+<script src="js/meteo.js?v=20261123d"></script>
+<script src="js/lieux.js?v=20261123d"></script>
+<script src="js/code.js?v=20261123d"></script>
+<script src="js/planning.js?v=20261123d"></script>
+<script src="js/partage.js?v=20261123d"></script>
+<script src="js/formulaires.js?v=20261123d"></script>
+<script src="js/notifications.js?v=20261123d"></script>
+<script src="js/lexique.js?v=20261123d"></script>
+<script src="js/allures.js?v=20261123d"></script>
+<script src="js/progression.js?v=20261123d"></script>
+<script src="js/seances.js?v=20261123d"></script>
+<script src="js/programmes.js?v=20261123d"></script>
+<script src="js/chrono.js?v=20261123d"></script>
+<script src="js/defi.js?v=20261123d"></script>
+<script src="js/main.js?v=20261123d"></script>
 </body>
 </html>

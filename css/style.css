@@ -433,3 +433,33 @@ details.desc>summary:focus-visible{text-decoration:underline}
 details.desc>summary::-webkit-details-marker{display:none}
 details.desc[open]>summary{display:none}
 details.desc>p{margin:0}
+
+/* --- Mode séance : lisible téléphone posé au sol, actions sous le pouce --- */
+.runtop{display:flex;align-items:flex-start;gap:10px}
+.runtop h2{flex:1;min-width:0}
+.btn.quit{flex:none;min-width:40px;min-height:40px;padding:0;font-size:1.1rem}
+.runbloc{font-size:.82rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--encre-douce)}
+.runbloc:empty{display:none}
+
+/* L'exercice en cours doit se lire de loin. */
+.runex.cur .rtxt{font-size:1.45rem;line-height:1.2}
+.runex.cur .rtxt .rdose{font-size:1rem}
+.runex.cur .rtxt small{font-size:.95rem;margin-top:4px}
+.runex.cur{padding:16px 14px}
+
+/* Cases de séries plus grandes : on les vise en sueur, sans lunettes. */
+.dots i{width:20px;height:20px}
+.runseries b{font-size:1.15rem}
+.runex input{width:30px;height:30px}
+
+/* Barre du bas : l'action du moment en grand, Terminer en retrait. */
+.runactions{display:flex;gap:10px;align-items:stretch}
+.runactions #runAction{flex:1;min-height:60px;font-size:1.15rem}
+.runactions #runFin{flex:none;white-space:nowrap}
+.runactions #runFin.big{flex:1;min-height:60px;font-size:1.15rem}
+
+/* Le même bouton existe dans la carte : on l'y enlève pour ne pas l'avoir en double. */
+.runex.cur .runbtns .btn.primary{display:none}
+.runrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.runrow .runtimer.idle{margin-left:auto}
+.runrow .runtimer.on{flex:1 1 100%}

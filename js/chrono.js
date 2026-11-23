@@ -231,13 +231,38 @@ function carteActive(it) {
       ${it.sets.length || it.passe ? `<button type="button" class="btn small" data-run="annuler">Remettre à faire</button>` : `<button type="button" class="btn small" data-run="passer">↷ Passer</button>`}
     </div>`;
 }
+// Le geste le plus fréquent — valider une série — reste sous le pouce, en bas de l'écran,
+// au lieu de bouger avec le défilement de la liste.
+function majBarreAction() {
+  const btn = $('runAction'), bloc = $('runBloc');
+  if (!btn) return;
+  if (run.recap) {
+    btn.hidden = true; $('runFin').classList.add('big'); bloc.textContent = '';
+    return;
+  }
+  $('runFin').classList.remove('big');
+  const it = run.items[run.cur];
+  if (!it) { btn.hidden = true; bloc.textContent = ''; return; }
+  btn.hidden = false;
+  const fini = complet(it);
+  const k = Math.min(it.sets.length + 1, it.series);
+  const prochain = suivant(run.cur);
+  btn.dataset.run = fini ? 'suivant' : 'serie';
+  btn.textContent = fini ? (prochain >= 0 ? 'Exercice suivant →' : 'Voir le récap →') : '✓ Série ' + k + ' faite';
+  // Où on en est dans la séance : le bloc et le rang de l'exercice, toujours visibles.
+  const nom = it.bloc || 'Bloc';
+  const dans = run.items.filter(x => (x.bloc || 'Bloc') === nom);
+  bloc.textContent = nom + ' · ' + (dans.indexOf(it) + 1) + '/' + dans.length;
+}
 function renderRun() {
   const faits = run.items.filter(complet).length, passes = run.items.filter(i => i.passe).length;
   const avance = run.items.reduce((a, i) => a + (i.passe ? 1 : Math.min(i.sets.length / i.series, 1)), 0);
   $('runProg').textContent = faits + ' / ' + run.items.length + (passes ? ' · ' + passes + ' passé' + (passes > 1 ? 's' : '') : '');
   $('runBar').style.width = (run.items.length ? avance / run.items.length * 100 : 0) + '%';
-  $('runClose').textContent = run.recap ? '← Retour' : 'Quitter';
+  $('runClose').textContent = run.recap ? '←' : '✕';
+  $('runClose').setAttribute('aria-label', run.recap ? 'Revenir à la séance' : 'Quitter la séance');
   $('runFin').textContent = run.recap ? '✓ Enregistrer' : '✓ Terminer';
+  majBarreAction();
   $('runFin').classList.toggle('pulse', run.recap || (run.items.every(traite) && faits > 0));
   if (run.recap) { $('runList').innerHTML = recapHtml(); sauverRun(); return; }
   let bloc = null;
@@ -371,7 +396,7 @@ $('runDlg').addEventListener('click', e => {
   else if (a === 'libre') lancerChrono('up', 0, 'Chrono libre');
   else if (a === 'stop') arreterChrono();
   else if (a === 'plus15' || a === 'moins15') { if (chrono && chrono.mode === 'down') { chrono.fin += (a === 'plus15' ? 15 : -15) * 1000; majChrono(); } }
-  else if (b.closest('#runList')) action(a, b);
+  else if (b.closest('#runList') || b.id === 'runAction') action(a, b);
 });
 $('runFin').onclick = async () => {
   if (!run) return;
